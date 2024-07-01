@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:14-alpine
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    container_name: instagramScrapping
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
