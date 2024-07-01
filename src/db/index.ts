@@ -8,4 +8,6 @@ export const AppDataSource = new DataSource({
   password: envs.dbPassword,
   database: envs.dbName,
   logging: true,
+  synchronize: true,
+  entities: ['src/db/entities/*.ts'],
 });
