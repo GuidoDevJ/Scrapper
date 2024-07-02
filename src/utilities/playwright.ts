@@ -33,90 +33,97 @@ const loadSession = async (page: Page) => {
   }
 };
 
+const getProfileData = async (page: Page) => {
+  return await page.evaluate(() => {
+    const profileImg = document.querySelector('header img') as HTMLImageElement;
+    const ul = document.querySelector('header ul') as HTMLElement;
+    const liElements = ul.querySelectorAll('li');
+    const spans: HTMLElement[] = [];
+
+    liElements.forEach((li) => {
+      const spanElements = li.querySelectorAll('span span');
+      spanElements.forEach((span) => spans.push(span as HTMLElement));
+    });
+
+    return {
+      profileImg: profileImg.src,
+      following: +spans.map((span) => span.innerHTML)[0],
+      followers: +spans.map((span) => span.innerHTML)[1],
+      posts: +spans.map((span) => span.innerHTML)[0],
+    };
+  });
+};
+
+const getPostLinks = async (page: Page) => {
+  return await page.evaluate(() => {
+    const article = document.querySelector('article');
+    if (!article) return [];
+
+    const postDivs = Array.from(
+      article.querySelectorAll('div > div > div > div')
+    );
+    const linksArray = postDivs.map((postDiv) => {
+      const links = postDiv.querySelectorAll('a');
+      return Array.from(links).map((link) => link.href);
+    });
+    return linksArray.flat();
+  });
+};
+
 export const getInstagramPosts = async (username: string): Promise<AllData> => {
   const browser = await chromium.launch();
   const page = await browser.newPage();
   await loadSession(page);
-  const postDetails: any[] = [];
+
   let allData: AllData = {
     posts: 0,
     followers: 0,
-    postDetails: [],
+    following: 0,
+    links: [],
+    profileImg: '',
   };
+
   try {
     await page.goto(`https://www.instagram.com/${username}/`);
     await page.waitForSelector('header');
 
+    // Obtener datos del perfil
+    const profileData = await getProfileData(page);
+    allData.profileImg = profileData.profileImg;
+    allData.followers = profileData.followers;
+    allData.posts = profileData.posts;
+    allData.following = profileData.following;
+
     let prevHeight = 0;
     let currentHeight = 0;
     let reachedEnd = false;
-    const seenImages = new Set<string>();
-    // Función para realizar el scroll infinito usando la tecla "End"
+    const allLinks = new Set<string>();
+
+    // Función para realizar el scroll infinito
     while (!reachedEnd) {
-      currentHeight = await page.evaluate('document.body.scrollHeight');
+      currentHeight = await page.evaluate(() => document.body.scrollHeight);
       if (currentHeight === prevHeight) {
         reachedEnd = true;
       } else {
         prevHeight = currentHeight;
 
-        // Scroll down to load more posts
-        await page.evaluate(() => {
-          window.scrollBy(0, window.innerHeight);
-        });
+        // Press the End key to load more posts
+        await page.keyboard.press('End');
 
         // Esperar un tiempo para asegurarse de que se cargan nuevos elementos
-        await page.waitForTimeout(3000);
+        await page.waitForTimeout(10000); // Esperar 10 segundos
 
-        // Obtener los datos después del scroll
-        const data: any = await page.evaluate(() => {
-          // OBTENGO DATA BASICA DEL PERFIL
-
-          const ul = document.querySelector('header ul') as HTMLElement;
-          const liElements = ul.querySelectorAll('li');
-          const spans: HTMLElement[] = [];
-
-          liElements.forEach((li) => {
-            const spanElements = li.querySelectorAll('span span');
-            spanElements.forEach((span) => spans.push(span as HTMLElement));
-          });
-          if (!ul) return [];
-          const article = document.querySelector('article');
-          if (!article) return [];
-
-          const postDivs = Array.from(
-            article.querySelectorAll('div > div > div > div')
-          );
-
-          const spanInner = postDivs.map((postDiv) => {
-            const spans = postDiv.querySelectorAll('span');
-            return Array.from(spans).map((span) => span.innerHTML);
-          });
-
-          const imgArray = postDivs.map((postDiv) => {
-            const imgs = postDiv.querySelectorAll('img');
-            return Array.from(imgs).map((img) => img.src);
-          });
-          // postDetails.push(...imgArray);
-          return {
-            titlesOfPost: spanInner.flat(),
-            imgOfPost: imgArray.flat(),
-            followers: spans.map((span) => span.innerHTML)[1],
-            posts: spans.map((span) => span.innerHTML)[0],
-          };
-        });
-        allData.followers = data.followers;
-        allData.posts = data.posts;
-        data.titlesOfPost.forEach((title: any, index: string | number) => {
-          const image = data.imgOfPost[index];
-          if (!seenImages.has(image)) {
-            seenImages.add(image);
-            postDetails.push({ title, image });
+        // Obtener los enlaces de los posts
+        const links = await getPostLinks(page);
+        links.forEach((link: string) => {
+          if (!allLinks.has(link)) {
+            allLinks.add(link);
           }
         });
       }
     }
-    allData.postDetails = postDetails;
-    console.log(allData);
+
+    allData.links = Array.from(allLinks);
     await browser.close();
     return allData;
   } catch (error) {
@@ -125,3 +132,101 @@ export const getInstagramPosts = async (username: string): Promise<AllData> => {
     throw error;
   }
 };
+const getMediaData = async (page: Page) => {
+  return await page.evaluate(() => {
+    const mainDiv = document.querySelector('main > div > div > div');
+    if (!mainDiv) return { images: [], videos: [] };
+
+    const imgElements = Array.from(mainDiv.querySelectorAll('img')).map(
+      (img) => (img as HTMLImageElement).src
+    );
+    const videoElements = Array.from(mainDiv.querySelectorAll('video')).map(
+      (video) => (video as HTMLVideoElement).src
+    );
+
+    return {
+      images: imgElements,
+      videos: videoElements,
+    };
+  });
+};
+export const getInstagramPostData = async (url: string) => {
+  const browser = await chromium.launch();
+  const page = await browser.newPage();
+  await loadSession(page);
+  let com;
+  try {
+    await page.goto(url, { waitUntil: 'networkidle' });
+    await page.waitForSelector('main');
+    const data = await page.evaluate(() => {
+      const mainDiv = document.querySelector('main > div > div > div');
+      if (!mainDiv) return { images: '' };
+      const deepDiv = mainDiv.querySelector('div > div > div'); // Ajusta según tu necesidad
+      if (!deepDiv) return { images: [], videos: [] };
+      const imgElements = Array.from(deepDiv.querySelectorAll('img')).map(
+        (img) => (img as HTMLImageElement).src
+      );
+      const videoElements = Array.from(deepDiv.querySelectorAll('video')).map(
+        (video) => (video as HTMLVideoElement).src
+      );
+      const title =
+        mainDiv.children[1].children[0].children[2].children[0].children[0].children[0].children[1].children[0].children[0].querySelector(
+          'div'
+        )?.children[1].innerHTML;
+      const ownerCommentsContainer =
+        mainDiv.children[1]?.children[0]?.children[2]?.children[0]?.children[1];
+      if (!ownerCommentsContainer.children) return []; // Asegúrate de manejar casos donde el contenedor de comentarios no se encuentra
+
+      // Obtener todos los comentarios
+      const allComments = Array.from(ownerCommentsContainer.children).map(
+        (commentElement) => {
+          // Obtener el dueño del comentario
+          const ownerElement = commentElement.querySelector('span a span');
+          const owner = ownerElement ? ownerElement.innerHTML.trim() : '';
+
+          // Obtener el texto del comentario
+          const commentText =
+            commentElement.children[0].children[0].children[1].children[0]
+              .children[0].children[0].children[1].children[0].innerHTML;
+
+          return {
+            owner,
+            commentText,
+          };
+        }
+      );
+
+      return { title, allComments, imgElements, videoElements };
+      // const texts = [];
+      // Itera a través de los comentarios
+    });
+
+    await browser.close();
+    console.log('Hola', data);
+    return data;
+  } catch (error) {
+    console.error(`Error fetching data for ${url}:`, error);
+    await browser.close();
+    throw error;
+  }
+};
+
+// const data = await page.evaluate(() => {
+//   const mainDiv = document.querySelector('main > div > div > div');
+//   if (!mainDiv) return { images: [], videos: [] };
+
+//   const deepDiv = mainDiv.querySelector('div > div > div'); // Ajusta según tu necesidad
+//   if (!deepDiv) return { images: [], videos: [] };
+
+//   const imgElements = Array.from(deepDiv.querySelectorAll('img')).map(
+//     (img) => (img as HTMLImageElement).src
+//   );
+//   const videoElements = Array.from(deepDiv.querySelectorAll('video')).map(
+//     (video) => (video as HTMLVideoElement).src
+//   );
+
+//   return {
+//     images: imgElements,
+//     videos: videoElements,
+//   };
+// });

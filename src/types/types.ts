@@ -5,6 +5,8 @@ export interface InstagramPostDetails {
 
 export interface AllData {
   posts: number;
+  following: number;
   followers: number;
-  postDetails: InstagramPostDetails[];
+  links: string[];
+  profileImg: string;
 }
