@@ -1,30 +1,18 @@
-import { envs } from './config';
 import { AppDataSource } from './db';
-import {
-  getInstagramPostData,
-  getInstagramPosts,
-} from './utilities/playwright';
+import { InstagramScrapperService } from './services/InstagramService';
+import { getInstagramPosts } from './utilities/playwright';
 
 const main = async () => {
+  const userName = 'juanrinas12';
   try {
-    // await AppDataSource.initialize();
-    // const { links } = await getInstagramPosts('burgos.food');
-    const links = [
-      // 'https://www.instagram.com/p/CuNlrpMpPpn/',
-      // 'https://www.instagram.com/p/CtkT2WUJR-C/?img_index=1',
-      'https://www.instagram.com/p/CvqOGgiJ1wj/',
-    ];
-    for (const link of links) {
-      await getInstagramPostData(link);
-    }
+    const appDataSource = await AppDataSource.initialize();
+    const instagramService = new InstagramScrapperService(appDataSource);
+    const data = await getInstagramPosts(userName);
+    await instagramService.processData(data, userName);
+    console.log('Llegue al final');
   } catch (error) {
     console.log(error);
   }
 };
 
 main();
-
-// (async () => {
-//   console.log(envs.instagramPassword);
-//   await getInstagramPosts('carne.pampeana');
-// })();

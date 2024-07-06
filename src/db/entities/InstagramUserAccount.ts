@@ -21,6 +21,6 @@ export class InstagramUserAccount {
   @Column({ nullable: true })
   profilePictureUrl: string;
 
-  @OneToMany(() => InstagramPost, (post) => post.account)
+  @OneToMany(() => InstagramPost, (post) => post.account, { nullable: true })
   posts: InstagramPost[];
 }

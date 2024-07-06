@@ -19,12 +19,13 @@ export class InstagramPost {
   @Column()
   title: string;
 
-  @Column()
+  @Column({ nullable: true })
   numberOfLikes: number;
 
-  @OneToMany(() => CommentEntity, (comment) => comment.post)
-  comments: CommentEntity[];
+  // @OneToMany(() => CommentEntity, (comment) => comment.post)
+  // comments: CommentEntity[];
 
   @ManyToOne(() => InstagramUserAccount, (account) => account.posts)
   account: InstagramUserAccount;
+  comments: any;
 }

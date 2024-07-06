@@ -44,10 +44,9 @@ const getProfileData = async (page: Page) => {
       const spanElements = li.querySelectorAll('span span');
       spanElements.forEach((span) => spans.push(span as HTMLElement));
     });
-
     return {
       profileImg: profileImg.src,
-      following: +spans.map((span) => span.innerHTML)[0],
+      following: +spans.map((span) => span.innerHTML)[2],
       followers: +spans.map((span) => span.innerHTML)[1],
       posts: +spans.map((span) => span.innerHTML)[0],
     };
@@ -153,12 +152,17 @@ const getMediaData = async (page: Page) => {
 export const getInstagramPostData = async (url: string) => {
   const browser = await chromium.launch();
   const page = await browser.newPage();
+
+  // Intentar extraer el número de likes usando la expresión regular
   await loadSession(page);
-  let com;
   try {
     await page.goto(url, { waitUntil: 'networkidle' });
     await page.waitForSelector('main');
     const data = await page.evaluate(() => {
+      // Expresión regular para encontrar el número de likes
+      const regex = /(\d+)\s+likes/;
+      const regex2 = /<[^>]*>/g;
+
       const mainDiv = document.querySelector('main > div > div > div');
       if (!mainDiv) return { images: '' };
       const deepDiv = mainDiv.querySelector('div > div > div'); // Ajusta según tu necesidad
@@ -173,36 +177,60 @@ export const getInstagramPostData = async (url: string) => {
         mainDiv.children[1].children[0].children[2].children[0].children[0].children[0].children[1].children[0].children[0].querySelector(
           'div'
         )?.children[1].innerHTML;
+      const likesElement =
+        mainDiv.children[1]?.children[0]?.children[3]?.children[1]?.children[0]?.children[1]?.querySelector(
+          'span a span span'
+        );
+
+      const likes = likesElement ? likesElement.innerHTML : 'N/A'; // Si likesElement es null, establece un valor predeterminado como 'N/A'
+
       const ownerCommentsContainer =
         mainDiv.children[1]?.children[0]?.children[2]?.children[0]?.children[1];
       if (!ownerCommentsContainer.children) return []; // Asegúrate de manejar casos donde el contenedor de comentarios no se encuentra
 
       // Obtener todos los comentarios
-      const allComments = Array.from(ownerCommentsContainer.children).map(
-        (commentElement) => {
-          // Obtener el dueño del comentario
-          const ownerElement = commentElement.querySelector('span a span');
-          const owner = ownerElement ? ownerElement.innerHTML.trim() : '';
+      const allComments = Array.from(ownerCommentsContainer.children);
 
-          // Obtener el texto del comentario
-          const commentText =
-            commentElement.children[0].children[0].children[1].children[0]
-              .children[0].children[0].children[1].children[0].innerHTML;
+      let allCom = allComments.map((commentElement) => {
+        // Obtener el dueño del comentario
+        const ownerElement = commentElement.querySelector('span a span');
+        const owner = ownerElement ? ownerElement.innerHTML.trim() : '';
 
-          return {
-            owner,
-            commentText,
-          };
+        // Obtener el texto del comentario
+        const commentText =
+          commentElement?.children[0]?.children[0]?.children[1]?.children[0]
+            ?.children[0]?.children[0]?.children[1]?.children[0]?.innerHTML;
+        const finalComment = commentText ? commentText.trim() : '';
+        const likesOfComment =
+          commentElement?.children[0]?.children[0]?.children[1]?.children[0]?.children[1].querySelector(
+            'span'
+          )?.innerHTML as string;
+        const match = regex.exec(likesOfComment);
+        // Variable para almacenar el número de likes
+        let likesNumber = 0;
+
+        // Si se encuentra coincidencia con la expresión regular
+        if (match) {
+          // Obtener el número de likes (la primera coincidencia capturada)
+          likesNumber = parseInt(match[1], 10);
         }
-      );
-
-      return { title, allComments, imgElements, videoElements };
-      // const texts = [];
-      // Itera a través de los comentarios
+        return {
+          owner,
+          finalComment: finalComment.replace(regex2, ''),
+          likesNumber,
+        };
+      });
+      allCom = allCom.filter((comment) => comment.owner !== '');
+      return {
+        title: title?.replace(regex2, ''),
+        allCom,
+        imgElements,
+        videoElements,
+        likes,
+      };
     });
 
     await browser.close();
-    console.log('Hola', data);
     return data;
   } catch (error) {
     console.error(`Error fetching data for ${url}:`, error);
