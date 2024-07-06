@@ -16,29 +16,47 @@ export class InstagramScrapperService {
   }
 
   async processData(data: any, userName: string) {
-    const { links, ...allData } = data;
+    // Extraer las propiedades necesarias de 'data'
+    const { links, followers, following, posts, profileImg } = data;
+
+    // Crear un nuevo usuario
     const newUser = await this.userRepository.createUser({
-      followers: allData.followers,
-      following: allData.following,
-      numberOfPosts: allData.posts,
-      profilePictureUrl: allData.profileImg,
+      followers,
+      following,
+      numberOfPosts: posts,
+      profilePictureUrl: profileImg,
       username: userName,
     });
+
+    // Procesar cada enlace de Instagram
     for (const link of links) {
-      const { allCom, ...data } = (await getInstagramPostData(link)) as any;
-      const post = await this.instagramPostRepository.createPost({
-        images: data.imgElements,
-        title: data.title,
-        numberOfLikes: +data.likes,
-        account: newUser,
-      });
-      for (const comment of allCom) {
-        await this.commentRepository.createComment({
-          comment: comment.finalComment,
-          post: post,
-          commentOwnerName: comment.owner,
-          likesOfComment: comment.likesNumber,
+      try {
+        // Obtener datos detallados de la publicación de Instagram
+        const { allCom, ...postData } = (await getInstagramPostData(
+          link
+        )) as any;
+
+        // Crear una nueva publicación en Instagram
+        const post = await this.instagramPostRepository.createPost({
+          images: postData.imgElements,
+          title: postData.title,
+          numberOfLikes: +postData.likes,
+          account: newUser,
         });
+
+        // Procesar cada comentario de la publicación
+        for (const comment of allCom) {
+          // Crear un nuevo comentario
+          await this.commentRepository.createComment({
+            comment: comment.finalComment,
+            post,
+            commentOwnerName: comment.owner,
+            likesOfComment: comment.likesNumber,
+          });
+        }
+      } catch (error) {
+        console.error(`Error processing post from link ${link}:`, error);
+        // Puedes manejar el error de manera adecuada según tus necesidades
       }
     }
   }
