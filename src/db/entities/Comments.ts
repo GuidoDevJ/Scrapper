@@ -12,7 +12,7 @@ export class CommentEntity {
   @Column()
   comment: string;
 
-  @Column()
+  @Column({ nullable: true })
   likesOfComment: number;
 
   @ManyToOne(() => InstagramPost, (post) => post.comments)

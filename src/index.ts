@@ -1,19 +1,18 @@
-import { envs } from './config';
 import { AppDataSource } from './db';
+import { InstagramScrapperService } from './services/InstagramService';
 import { getInstagramPosts } from './utilities/playwright';
 
 const main = async () => {
+  const userName = 'gerardobalmaceda';
   try {
-    await AppDataSource.initialize();
-    console.log('Data Source has been initialized!');
+    const appDataSource = await AppDataSource.initialize();
+    const instagramService = new InstagramScrapperService(appDataSource);
+    const data = await getInstagramPosts(userName);
+    await instagramService.processData(data, userName);
+    console.log('Llegue al final');
   } catch (error) {
     console.log(error);
   }
 };
 
 main();
-
-// (async () => {
-//   console.log(envs.instagramPassword);
-//   await getInstagramPosts('carne.pampeana');
-// })();

@@ -19,7 +19,7 @@ export class InstagramPost {
   @Column()
   title: string;
 
-  @Column()
+  @Column({ nullable: true })
   numberOfLikes: number;
 
   @OneToMany(() => CommentEntity, (comment) => comment.post)
