@@ -1,6 +1,15 @@
 export interface InstagramPostDetails {
   title: string;
-  image: string;
+  imgElements: string[];
+  allCom: Comment[];
+  videoElements: [];
+  likes: number;
+}
+
+interface Comment {
+  owner: string;
+  finalComment: string;
+  likesNumber: number;
 }
 
 export interface AllData {

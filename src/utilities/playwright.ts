@@ -1,19 +1,13 @@
 import { Page, chromium } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
-import { AllData } from '../types/types';
-import 'dotenv/config';
+import { AllData, InstagramPostDetails } from '../types/types';
+import { envs } from '../config';
 
 export const loginInstagram = async (page: Page) => {
   await page.goto('https://www.instagram.com/accounts/login/');
-  await page.fill(
-    'input[name="username"]',
-    process.env.INSTAGRAM_USERNAME || ''
-  );
-  await page.fill(
-    'input[name="password"]',
-    process.env.INSTAGRAM_PASSWORD || ''
-  );
+  await page.fill('input[name="username"]', envs.instagramUsername || '');
+  await page.fill('input[name="password"]', envs.instagramPassword || '');
   await page.click('button[type="submit"]');
   const session = await page.context().cookies();
   fs.writeFileSync(
@@ -131,25 +125,9 @@ export const getInstagramPosts = async (username: string): Promise<AllData> => {
     throw error;
   }
 };
-const getMediaData = async (page: Page) => {
-  return await page.evaluate(() => {
-    const mainDiv = document.querySelector('main > div > div > div');
-    if (!mainDiv) return { images: [], videos: [] };
-
-    const imgElements = Array.from(mainDiv.querySelectorAll('img')).map(
-      (img) => (img as HTMLImageElement).src
-    );
-    const videoElements = Array.from(mainDiv.querySelectorAll('video')).map(
-      (video) => (video as HTMLVideoElement).src
-    );
-
-    return {
-      images: imgElements,
-      videos: videoElements,
-    };
-  });
-};
-export const getInstagramPostData = async (url: string) => {
+export const getInstagramPostData = async (
+  url: string
+): Promise<InstagramPostDetails> => {
   const browser = await chromium.launch();
   const page = await browser.newPage();
 
@@ -160,8 +138,8 @@ export const getInstagramPostData = async (url: string) => {
     await page.waitForSelector('main');
     const data = await page.evaluate(() => {
       // Expresión regular para encontrar el número de likes
-      const regex = /(\d+)\s+likes/;
-      const regex2 = /<[^>]*>/g;
+      const checkLikes = /(\d+)\s*likes?/;
+      const deleteTags = /<[^>]*>/g;
 
       const mainDiv = document.querySelector('main > div > div > div');
       if (!mainDiv) return { images: '' };
@@ -178,15 +156,17 @@ export const getInstagramPostData = async (url: string) => {
           'div'
         )?.children[1].innerHTML;
       const likesElement =
-        mainDiv.children[1]?.children[0]?.children[3]?.children[1]?.children[0]?.children[1]?.querySelector(
-          'span a span span'
+        mainDiv.children[1].children[0]?.children[3]?.children[1].querySelectorAll(
+          'span'
         );
 
-      const likes = likesElement ? likesElement.innerHTML : 'N/A'; // Si likesElement es null, establece un valor predeterminado como 'N/A'
+      const likesHTML = likesElement
+        ? likesElement[likesElement.length - 1].innerHTML
+        : '0';
 
       const ownerCommentsContainer =
         mainDiv.children[1]?.children[0]?.children[2]?.children[0]?.children[1];
-      if (!ownerCommentsContainer.children) return []; // Asegúrate de manejar casos donde el contenedor de comentarios no se encuentra
+      if (!ownerCommentsContainer.children) return [];
 
       // Obtener todos los comentarios
       const allComments = Array.from(ownerCommentsContainer.children);
@@ -205,7 +185,7 @@ export const getInstagramPostData = async (url: string) => {
           commentElement?.children[0]?.children[0]?.children[1]?.children[0]?.children[1].querySelector(
             'span'
           )?.innerHTML as string;
-        const match = regex.exec(likesOfComment);
+        const match = checkLikes.exec(likesOfComment);
         // Variable para almacenar el número de likes
         let likesNumber = 0;
 
@@ -216,45 +196,25 @@ export const getInstagramPostData = async (url: string) => {
         }
         return {
           owner,
-          finalComment: finalComment.replace(regex2, ''),
+          finalComment: finalComment.replace(deleteTags, ''),
           likesNumber,
         };
       });
       allCom = allCom.filter((comment) => comment.owner !== '');
       return {
-        title: title?.replace(regex2, ''),
+        title: title?.replace(deleteTags, ''),
         allCom,
         imgElements,
         videoElements,
-        likes,
+        likes: parseInt(likesHTML) ? parseInt(likesHTML) : 0,
       };
     });
 
     await browser.close();
-    return data;
+    return data as InstagramPostDetails;
   } catch (error) {
     console.error(`Error fetching data for ${url}:`, error);
     await browser.close();
     throw error;
   }
 };
-
-// const data = await page.evaluate(() => {
-//   const mainDiv = document.querySelector('main > div > div > div');
-//   if (!mainDiv) return { images: [], videos: [] };
-
-//   const deepDiv = mainDiv.querySelector('div > div > div'); // Ajusta según tu necesidad
-//   if (!deepDiv) return { images: [], videos: [] };
-
-//   const imgElements = Array.from(deepDiv.querySelectorAll('img')).map(
-//     (img) => (img as HTMLImageElement).src
-//   );
-//   const videoElements = Array.from(deepDiv.querySelectorAll('video')).map(
-//     (video) => (video as HTMLVideoElement).src
-//   );
-
-//   return {
-//     images: imgElements,
-//     videos: videoElements,
-//   };
-// });

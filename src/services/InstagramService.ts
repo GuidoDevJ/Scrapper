@@ -28,14 +28,11 @@ export class InstagramScrapperService {
       username: userName,
     });
 
-    // Procesar cada enlace de Instagram
+    // // Procesar cada enlace de Instagram
     for (const link of links) {
       try {
         // Obtener datos detallados de la publicación de Instagram
-        const { allCom, ...postData } = (await getInstagramPostData(
-          link
-        )) as any;
-
+        const { allCom, ...postData } = await getInstagramPostData(link);
         // Crear una nueva publicación en Instagram
         const post = await this.instagramPostRepository.createPost({
           images: postData.imgElements,

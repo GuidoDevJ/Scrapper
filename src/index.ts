@@ -3,7 +3,7 @@ import { InstagramScrapperService } from './services/InstagramService';
 import { getInstagramPosts } from './utilities/playwright';
 
 const main = async () => {
-  const userName = 'juanrinas12';
+  const userName = 'gerardobalmaceda';
   try {
     const appDataSource = await AppDataSource.initialize();
     const instagramService = new InstagramScrapperService(appDataSource);
