@@ -9,6 +9,9 @@ export class InstagramUserAccount {
   @Column()
   username: string;
 
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  scrapDate: string;
+
   @Column()
   numberOfPosts: number;
 

@@ -4,12 +4,19 @@ export interface InstagramPostDetails {
   allCom: Comment[];
   videoElements: [];
   likes: number;
+  datePost: string;
 }
 
 interface Comment {
+  commentDate: string;
   owner: string;
   finalComment: string;
   likesNumber: number;
+}
+
+export enum TypesOfContentSocialMedia {
+  INSTAGRAM = 'POST',
+  TIKTOK = 'REEL',
 }
 
 export interface AllData {
