@@ -20,7 +20,7 @@ export class InstagramScrapperService {
     // Extraer las propiedades necesarias de 'data'
     // const { links, followers, following, posts, profileImg } = data;
 
-    // Crear un nuevo usuario
+    // // Crear un nuevo usuario
     // const newUser = await this.userRepository.createUserOrUpdate({
     //   followers,
     //   following,
@@ -29,15 +29,15 @@ export class InstagramScrapperService {
     //   username: userName,
     //   scrapDate: getTime(),
     // });
-    // const links = ['https://www.instagram.com/p/C9WGcRSsMk_/'];
-    const links = ['https://www.instagram.com/p/C1cuIxUp4tI/'];
+    // // const links = ['https://www.instagram.com/p/C9WGcRSsMk_/'];
+    const links = ['https://www.instagram.com/p/C8zjP1-uFkL/'];
     // // Procesar cada enlace de Instagram
     for (const link of links) {
       try {
         // Obtener datos detallados de la publicación de Instagram
         const { allCom, ...postData } = await getInstagramPostData(link);
         // Crear una nueva publicación en Instagram
-
+        // console.log('COMMETS ALL ===>', allCom);
         // const post = await this.instagramPostRepository.createPost({
         //   media: [...postData.imgElements, ...postData.videoElements],
         //   title: postData.title,

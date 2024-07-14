@@ -7,11 +7,18 @@ export interface InstagramPostDetails {
   datePost: string;
 }
 
-interface Comment {
+export interface Comment {
   commentDate: string;
   owner: string;
   finalComment: string;
   likesNumber: number;
+  responses?: ResponseComment[];
+}
+export interface ResponseComment {
+  originalOwnerOfComment: string;
+  owner: string;
+  finalComment: string;
+  commentDate: string;
 }
 
 export enum TypesOfContentSocialMedia {
