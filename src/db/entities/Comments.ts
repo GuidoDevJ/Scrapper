@@ -1,4 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { InstagramPost } from './InstagramPost';
 
 @Entity()
@@ -12,7 +18,7 @@ export class CommentEntity {
   @Column()
   comment: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: 0 })
   likesOfComment: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }) // Ejemplo de columna date
@@ -23,4 +29,11 @@ export class CommentEntity {
 
   @ManyToOne(() => InstagramPost, (post) => post.comments)
   post: InstagramPost;
+  // Nueva propiedad originalCommentId para referenciar al comentario original
+  @ManyToOne(() => CommentEntity, { nullable: true })
+  @JoinColumn({ name: 'originalCommentId' })
+  originalComment: CommentEntity;
+
+  @Column({ nullable: true })
+  originalCommentId: number;
 }

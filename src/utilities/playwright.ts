@@ -27,7 +27,7 @@ async function loadSession(context: any) {
 // Función para verificar si el usuario está logueado
 async function isLoggedIn(page: any) {
   try {
-    await page.waitForSelector('a[href="/accounts/edit/"]', { timeout: 5000 });
+    await page.waitForSelector('a[href="/accounts/edit/"]', { timeout: 1000 });
     return true;
   } catch {
     return false;
@@ -212,41 +212,40 @@ export const getInstagramPostData = async (
         likes,
       } as InstagramPostDetails;
     }
-    // const scrollUntilEnd = async () => {
-    //   let canScroll = true;
-    //   while (canScroll) {
-    //     canScroll = await page.evaluate(() => {
-    //       const mainDiv = document.querySelector('main > div > div > div')
-    //         ?.children[1].children[0].children[2];
+    const scrollUntilEnd = async () => {
+      let canScroll = true;
+      while (canScroll) {
+        canScroll = await page.evaluate(() => {
+          const mainDiv = document.querySelector('main > div > div > div')
+            ?.children[1].children[0].children[2];
 
-    //       const hiddenCommentsSpan = Array.from(
-    //         document.querySelectorAll('span')
-    //       ).find(
-    //         (span) =>
-    //           span.textContent === 'View hidden comments' ||
-    //           span.textContent === 'Ver comentarios ocultos'
-    //       );
-    //       if (hiddenCommentsSpan) {
-    //         mainDiv?.scrollBy(0, -1000);
-    //         return false; // Detener el scroll si el span se encuentra
-    //       }
-    //       // if (mainDiv) {
-    //       //   const previousScrollTop = mainDiv.scrollTop;
-    //       //   mainDiv.scrollBy(0, 10000);
-    //       //   const newScrollTop = mainDiv.scrollTop;
-    //       //   return newScrollTop > previousScrollTop;
-    //       // }
-    //       if (!hiddenCommentsSpan) {
-    //         mainDiv?.scrollBy(0, 10000);
-    //         return !hiddenCommentsSpan;
-    //       }
-    //       return false;
-    //     });
-    //     console.log('Can scroll:', canScroll);
-    //     await page.waitForTimeout(5000);
-    //   }
-    // };
-    // await scrollUntilEnd();
+          const hiddenCommentsSpan = Array.from(
+            document.querySelectorAll('span')
+          ).find(
+            (span) =>
+              span.textContent === 'View hidden comments' ||
+              span.textContent === 'Ver comentarios ocultos'
+          );
+          if (hiddenCommentsSpan) {
+            mainDiv?.scrollBy(0, -1000);
+            return false; // Detener el scroll si el span se encuentra
+          }
+          // if (mainDiv) {
+          //   const previousScrollTop = mainDiv.scrollTop;
+          //   mainDiv.scrollBy(0, 10000);
+          //   const newScrollTop = mainDiv.scrollTop;
+          //   return newScrollTop > previousScrollTop;
+          // }
+          if (!hiddenCommentsSpan) {
+            mainDiv?.scrollBy(0, 10000);
+            return !hiddenCommentsSpan;
+          }
+          return false;
+        });
+        await page.waitForTimeout(5000);
+      }
+    };
+    await scrollUntilEnd();
 
     const commentsDivs: any[] = await page.evaluate(() => {
       const checkLikes = /(\d+)\s*(likes?|me\s+gustas?)/i;
@@ -296,9 +295,8 @@ export const getInstagramPostData = async (
       return [];
     });
 
-    // await page.waitForSelector('ul div');
+    await page.waitForSelector('ul div');
     const responseComments = await page.evaluate(() => {
-      const checkLikes = /(\d+)\s*(likes?|me\s+gustas?)/i;
       const deleteTags = /<[^>]*>/g;
       const mainDiv = document.querySelector('main > div > div > div');
       const ownerCommentsContainer =
@@ -326,6 +324,12 @@ export const getInstagramPostData = async (
                 div.children[0].children[1].children[0].children[0].children[0].children[0]
                   .querySelector('time')
                   ?.getAttribute('datetime');
+              console.log({
+                originalOwnerOfCommet: owner,
+                owner: finalOwner,
+                finalComment: text.replace(deleteTags, ''),
+                commentDate: dateOfComment,
+              });
               return {
                 originalOwnerOfCommet: owner,
                 owner: finalOwner,
@@ -345,33 +349,18 @@ export const getInstagramPostData = async (
     });
     await page.waitForTimeout(5000);
     const { title, datePost, imgElements, likes, videoElements } = data as any;
-    // Agrupar respuestas bajo el comentario correspondiente
-    commentsDivs.forEach((comment) => {
-      // Inicializar el array de respuestas si no existe
-      if (!comment.responses) {
-        comment.responses = [];
-      }
 
-      // Agregar las respuestas correspondientes
-      responseComments.forEach((response: any) => {
-        if (response.originalOwnerOfComment === comment.owner) {
-          console.log('Respuesta agregada:', response);
-          comment.responses.push(response);
-        }
-      });
+    commentsDivs.forEach((item) => {
+      item.responses = responseComments.filter(
+        (response: { originalOwnerOfCommet: any }) =>
+          response.originalOwnerOfCommet === item.owner
+      );
     });
 
-    console.log('Comentarios con respuestas:', responseComments);
-
-    const commentsWithResponses = commentsDivs.filter(
-      (comment) => comment.responses && comment.responses.length > 0
-    );
-
-    console.log('Comentarios finales:', commentsWithResponses);
     await browser.close();
     return {
       title,
-      allCom: responseComments,
+      allCom: commentsDivs,
       imgElements,
       videoElements,
       datePost,
