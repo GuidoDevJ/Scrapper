@@ -3,34 +3,28 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { AllData, InstagramPostDetails } from '../types/types';
 import { envs } from '../config';
-
-const sessionFilePath = path.resolve(__dirname, 'instagram-session.json');
+const sessionFilePath = './sessionCookies.json';
 
 // Función para guardar las cookies en un archivo
 async function saveSession(context: any) {
   const cookies = await context.cookies();
   fs.writeFileSync(sessionFilePath, JSON.stringify(cookies, null, 2));
+  console.log('Cookies guardadas:', cookies);
 }
 
 // Función para cargar las cookies desde un archivo
 async function loadSession(context: any) {
   if (fs.existsSync(sessionFilePath)) {
     const cookies = JSON.parse(fs.readFileSync(sessionFilePath, 'utf-8'));
-    await context.addCookies(cookies);
+    for (const cookie of cookies) {
+      await context.addCookies([cookie]);
+    }
+    console.log('Cookies cargadas:', cookies);
+    return true;
   } else {
     console.log(
       'No se encontraron cookies de sesión, se procederá a iniciar sesión.'
     );
-  }
-}
-
-// Función para verificar si el usuario está logueado
-async function isLoggedIn(page: any) {
-  try {
-    await page.waitForSelector('a[href="/accounts/edit/"]', { timeout: 1000 });
-    return true;
-  } catch {
-    return false;
   }
 }
 
@@ -40,15 +34,24 @@ export const loginInstagram = async (page: Page) => {
   await page.fill('input[name="username"]', envs.instagramUsername || '');
   await page.fill('input[name="password"]', envs.instagramPassword || '');
   await page.click('button[type="submit"]');
-  await saveSession(page.context());
   await page.waitForTimeout(5000); // Ajusta esto según tu necesidad
+  await saveSession(page.context());
 };
 
+// Función principal para cargar sesión e iniciar sesión si es necesario
 const loadSessionAndLogin = async (page: Page) => {
-  await loadSession(page.context());
+  const context = page.context();
+  const cookies = await loadSession(context);
+
   await page.goto('https://www.instagram.com');
-  if (!(await isLoggedIn(page))) {
+
+  // Esperar un selector que indique que la sesión es válida
+  const loginForm = await page.$('form');
+  if (!cookies) {
+    console.log('Sesión no válida, iniciando sesión...');
     await loginInstagram(page);
+  } else {
+    console.log('Sesión cargada exitosamente, no es necesario iniciar sesión.');
   }
 };
 
@@ -90,7 +93,9 @@ const getPostLinks = async (page: Page) => {
 };
 
 export const getInstagramPosts = async (username: string): Promise<AllData> => {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({
+    headless: false, // Establece la opción headless a true
+  });
   const context = await browser.newContext();
   const page = await context.newPage();
 
