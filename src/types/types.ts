@@ -26,6 +26,13 @@ export enum TypesOfContentSocialMedia {
   TIKTOK = 'REEL',
 }
 
+export enum AccountType {
+  INSTAGRAM = 'INSTAGRAM',
+  TIKTOK = 'TIKTOK',
+  YOUTUBE = 'YOUTUBE',
+  FACEBOOK = 'FACEBOOK',
+}
+
 export interface AllData {
   posts: number;
   following: number;

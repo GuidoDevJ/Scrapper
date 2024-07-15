@@ -1,6 +1,5 @@
 import { Page, chromium } from 'playwright';
 import * as fs from 'fs';
-import * as path from 'path';
 import { AllData, InstagramPostDetails } from '../types/types';
 import { envs } from '../config';
 const sessionFilePath = './sessionCookies.json';
@@ -192,7 +191,7 @@ export const getInstagramPostData = async (
       return {
         title: title?.replace(deleteTags, ''),
         imgElements,
-        videoElements,
+        videoElements: videoElements.length > 0 ? videoElements : [''],
         datePost: date,
         likes: parseInt(likesHTML) ? parseInt(likesHTML) : 0,
       };
@@ -218,7 +217,9 @@ export const getInstagramPostData = async (
       } as InstagramPostDetails;
     }
     const scrollUntilEnd = async () => {
-      let canScroll = true;
+      let previousScrollTop = 0;
+      let canScroll: any = true;
+
       while (canScroll) {
         canScroll = await page.evaluate(() => {
           const mainDiv = document.querySelector('main > div > div > div')
@@ -231,25 +232,35 @@ export const getInstagramPostData = async (
               span.textContent === 'View hidden comments' ||
               span.textContent === 'Ver comentarios ocultos'
           );
+
           if (hiddenCommentsSpan) {
             mainDiv?.scrollBy(0, -1000);
             return false; // Detener el scroll si el span se encuentra
           }
-          // if (mainDiv) {
-          //   const previousScrollTop = mainDiv.scrollTop;
-          //   mainDiv.scrollBy(0, 10000);
-          //   const newScrollTop = mainDiv.scrollTop;
-          //   return newScrollTop > previousScrollTop;
-          // }
-          if (!hiddenCommentsSpan) {
-            mainDiv?.scrollBy(0, 10000);
-            return !hiddenCommentsSpan;
-          }
-          return false;
+
+          const currentScrollTop = mainDiv?.scrollTop;
+          mainDiv?.scrollBy(0, 10000);
+
+          // Devuelve el valor actual de scrollTop y si se encontró el span de comentarios ocultos
+          return {
+            newScrollTop: mainDiv?.scrollTop,
+            hiddenCommentsSpanExists: !!hiddenCommentsSpan,
+            currentScrollTop,
+          };
         });
-        await page.waitForTimeout(5000);
+
+        const { newScrollTop, hiddenCommentsSpanExists, currentScrollTop } =
+          canScroll as any;
+
+        // Verifica si el scroll ha cambiado
+        if (newScrollTop === currentScrollTop || hiddenCommentsSpanExists) {
+          canScroll = false; // Detener el scroll si la posición no cambia o se encuentra el span
+        }
+
+        await page.waitForTimeout(2000); // Ajusta esto según tu necesidad
       }
     };
+
     await scrollUntilEnd();
 
     const commentsDivs: any[] = await page.evaluate(() => {

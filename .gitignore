@@ -2,3 +2,4 @@
 node_modules
 instagram-session.json
 postgres
+sessionCookies.json
