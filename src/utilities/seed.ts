@@ -15,7 +15,7 @@ const seedData = async () => {
       await instagramService.seedAccountData(account);
     }
     console.log('Se crearon las cuentas');
-    process.exit(0);
+    return process.exit(0);
   } catch (error: any) {
     console.error(`Error al crear usuario: ${error.message}`);
     console.error(`Detalles adicionales: ${error.stack}`);

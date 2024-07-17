@@ -1,6 +1,15 @@
 [
+  { "accountURL": "hectorfojeda", "accountType": "INSTAGRAM" },
+  {
+    "accountURL": "gerardobalmaceda",
+    "accountType": "INSTAGRAM"
+  },
   {
     "accountURL": "burgerkingcorrientes",
+    "accountType": "INSTAGRAM"
+  },
+  {
+    "accountURL": "eze.monzon16",
     "accountType": "INSTAGRAM"
   }
 ]

@@ -19,7 +19,7 @@ export class InstagramScrapperService {
     this.accountRepository = new AccountRepository(dataSource);
   }
 
-  async processData(data: any, userName: string, accountId: number) {
+  async processData(data: any, account: AccountEntity) {
     // Extraer las propiedades necesarias de 'data'
     const { links, followers, following, posts, profileImg } = data;
 
@@ -29,21 +29,20 @@ export class InstagramScrapperService {
       following,
       numberOfPosts: posts,
       profilePictureUrl: profileImg,
-      username: userName,
-      accountId: accountId,
+      username: account.accountURL,
+      account: account,
       scrapDate: getTime(),
     });
-    // // const links = ['https://www.instagram.com/p/C9WGcRSsMk_/'];
-    // const links = [
-    //   'https://www.instagram.com/p/C9JTNySRGRulrxl7C5ewW_NwAtUcHPv-kAap6U0/?img_index=1',
-    //   'https://www.instagram.com/p/C9U4uUyxjJCmhp-vQ-Ct5-bQBq6HITElj6Pn3A0/?img_index=1',
-    //   'https://www.instagram.com/p/CcbxXYCrErr4txrwuKDbZIS0FlGLfIKoElrl7E0/?img_index=1',
-    // ];
+    if (posts === 0) {
+      return newUser;
+    }
+
     // // Procesar cada enlace de Instagram
     for (const link of links) {
       try {
         // Obtener datos detallados de la publicación de Instagram
         const { allCom, ...postData } = await getInstagramPostData(link);
+        console.log('ALL COMMETS ===>', allCom);
         // Crear una nueva publicación en Instagram
         const post = await this.instagramPostRepository.createPost({
           media: [...postData.imgElements, ...postData.videoElements],
@@ -75,7 +74,7 @@ export class InstagramScrapperService {
                 post,
                 commentOwnerName: response.owner,
                 commentDate: response.commentDate,
-                originalCommentId: savedComment.id, // Suponiendo que savedComment.id es el ID del comentario principal
+                originalCommentId: savedComment,
                 scrapDate: getTime(),
               });
             }
@@ -91,7 +90,6 @@ export class InstagramScrapperService {
     return await this.accountRepository.getAccounts();
   }
   async seedAccountData(account: AccountEntity) {
-    console.log('account ===>', account);
     try {
       return await this.accountRepository.createAccountOrUpdate(account);
     } catch (error) {

@@ -1,24 +1,15 @@
-FROM node:18.18.2-alpine
+# Use the official Node.js image as the base image
+FROM node:20-bookworm
 
-# Instalar dependencias necesarias
-RUN apk add --no-cache \
-    chromium \
-    udev \
-    ttf-freefont
-
-# Instalar Playwright y configurar los navegadores
-RUN npx playwright install
+# Install Playwright and its dependencies
+RUN npx -y playwright@1.45.1 install --with-deps
 
 WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install 
+RUN npm ci
 
 COPY . .
 
-# RUN npm run build
-
-EXPOSE 3005
-
-CMD [ "npm", "run","dev" ]
+CMD ["npm", "run","dev"]

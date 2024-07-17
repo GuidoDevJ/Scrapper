@@ -8,7 +8,6 @@ const sessionFilePath = './sessionCookies.json';
 async function saveSession(context: any) {
   const cookies = await context.cookies();
   fs.writeFileSync(sessionFilePath, JSON.stringify(cookies, null, 2));
-  console.log('Cookies guardadas:', cookies);
 }
 
 // Función para cargar las cookies desde un archivo
@@ -18,7 +17,6 @@ async function loadSession(context: any) {
     for (const cookie of cookies) {
       await context.addCookies([cookie]);
     }
-    console.log('Cookies cargadas:', cookies);
     return true;
   } else {
     console.log(
@@ -44,8 +42,6 @@ const loadSessionAndLogin = async (page: Page) => {
 
   await page.goto('https://www.instagram.com');
 
-  // Esperar un selector que indique que la sesión es válida
-  const loginForm = await page.$('form');
   if (!cookies) {
     console.log('Sesión no válida, iniciando sesión...');
     await loginInstagram(page);
@@ -92,9 +88,7 @@ const getPostLinks = async (page: Page) => {
 };
 
 export const getInstagramPosts = async (username: string): Promise<AllData> => {
-  const browser = await chromium.launch({
-    headless: false, // Establece la opción headless a true
-  });
+  const browser = await chromium.launch();
   const context = await browser.newContext();
   const page = await context.newPage();
 
@@ -153,9 +147,7 @@ export const getInstagramPosts = async (username: string): Promise<AllData> => {
 export const getInstagramPostData = async (
   url: string
 ): Promise<InstagramPostDetails> => {
-  const browser = await chromium.launch({
-    headless: false, // Establece la opción headless a true
-  });
+  const browser = await chromium.launch();
   const page = await browser.newPage();
   await loadSessionAndLogin(page);
   try {
@@ -198,11 +190,13 @@ export const getInstagramPostData = async (
     });
     const noCommentsYet = await page.evaluate(() => {
       const noCommentsSpan = Array.from(document.querySelectorAll('span')).find(
-        (span) => span.textContent === 'No comments yet.'
+        (span) =>
+          span.textContent === 'No comments yet.' ||
+          span.textContent === 'Todavía no hay comentarios.'
       );
       return noCommentsSpan !== undefined;
     });
-
+    console.log('SOY EL NOCOMMETS ===>', noCommentsYet);
     if (noCommentsYet) {
       const { title, imgElements, videoElements, datePost, likes } =
         data as any;
@@ -311,7 +305,22 @@ export const getInstagramPostData = async (
       return [];
     });
 
-    await page.waitForSelector('ul div');
+    // Si no existen respuestas a los comentarios debe retornar solamente los comentarios
+    try {
+      await page.waitForSelector('ul div', { timeout: 5000 });
+    } catch (e) {
+      const { title, datePost, imgElements, likes, videoElements } =
+        data as InstagramPostDetails;
+      await browser.close();
+      return {
+        title,
+        allCom: commentsDivs,
+        imgElements,
+        videoElements,
+        datePost,
+        likes,
+      };
+    }
     const responseComments = await page.evaluate(() => {
       const deleteTags = /<[^>]*>/g;
       const mainDiv = document.querySelector('main > div > div > div');
@@ -381,10 +390,12 @@ export const getInstagramPostData = async (
       videoElements,
       datePost,
       likes,
-    } as unknown as InstagramPostDetails;
+    } as InstagramPostDetails;
   } catch (error) {
     console.error(`Error fetching data for ${url}:`, error);
     await browser.close();
     throw error;
   }
 };
+export { chromium };
+

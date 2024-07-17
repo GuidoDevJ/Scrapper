@@ -2,13 +2,12 @@
   "name": "instagram-spider-playwright",
   "version": "1.0.0",
   "description": "",
-  "type": "commonjs",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "npm run build && node ./dist/index.js",
     "dev": "ts-node-dev src/index.ts",
-    "seed": "ts-node-dev --respawn src/utilities/seed.ts"
+    "seed": "ts-node-dev src/utilities/seed.ts"
   },
   "keywords": [],
   "author": "",
