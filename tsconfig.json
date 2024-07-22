@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "module": "CommonJS",
-    "target": "ES2021",
+    "module": "esnext",
+    "target": "esnext",
     "sourceMap": true,
-    "strict": true,
+    "moduleResolution": "node",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false,
@@ -11,8 +11,14 @@
     "skipLibCheck": true,
     "baseUrl": "./src",
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "plugins": [
+      {
+        "name": "esm-resolve",
+        "resolveDotJS": true
+      }
+    ]
   },
-  "include": ["src/**/*"],
+  "include": ["./src/**/*"],
   "exclude": ["node_modules"]
 }

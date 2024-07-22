@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import * as joi from 'joi';
+import joi from 'joi';
 
 dotenv.config();
 
@@ -34,11 +34,11 @@ if (error) {
 const envVars: EnvVars = value;
 
 export const envs = {
-    dbHost : envVars.DB_HOST,
-    dbPort : envVars.DB_PORT,
-    dbUser : envVars.POSTGRES_USER,
-    dbPassword : envVars.POSTGRES_PASSWORD,
-    dbName : envVars.POSTGRES_DB,
-    instagramUsername : envVars.INSTAGRAM_USERNAME,
-    instagramPassword : envVars.INSTAGRAM_PASSWORD
-}
+  dbHost: envVars.DB_HOST,
+  dbPort: envVars.DB_PORT,
+  dbUser: envVars.POSTGRES_USER,
+  dbPassword: envVars.POSTGRES_PASSWORD,
+  dbName: envVars.POSTGRES_DB,
+  instagramUsername: envVars.INSTAGRAM_USERNAME,
+  instagramPassword: envVars.INSTAGRAM_PASSWORD,
+};

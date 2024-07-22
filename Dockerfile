@@ -10,6 +10,8 @@ COPY package*.json ./
 
 RUN npm ci
 
+RUN npm install -g pm2
+
 COPY . .
 
-CMD ["npm", "run","dev"]
+CMD ["pm2-runtime", "start", "ecosystem.config.js"]
