@@ -42,13 +42,14 @@ export class InstagramScrapperService {
       try {
         // Obtener datos detallados de la publicación de Instagram
         const { allCom, ...postData } = await getInstagramPostData(link);
-        console.log('ALL COMMETS ===>', allCom);
+        const { title, likes, datePost, numberOfComments } = postData;
         // Crear una nueva publicación en Instagram
         const post = await this.instagramPostRepository.createPost({
           media: [...postData.imgElements, ...postData.videoElements],
-          title: postData.title,
-          numberOfLikes: +postData.likes,
-          postDate: postData.datePost,
+          title: title,
+          numberOfLikes: +likes,
+          numberOfComments: +numberOfComments,
+          postDate: datePost,
           account: newUser,
           scrapDate: getTime(),
         });
@@ -56,24 +57,27 @@ export class InstagramScrapperService {
         // Procesar cada comentario de la publicación
         for (const comment of allCom) {
           // Crear un nuevo comentario
+          const { finalComment, owner, commentDate, likesNumber, responses } =
+            comment;
           const savedComment =
             await this.commentRepository.createCommentOrUpdate({
-              comment: comment.finalComment,
+              comment: finalComment,
               post,
-              commentOwnerName: comment.owner,
-              likesOfComment: comment.likesNumber,
-              commentDate: comment.commentDate,
+              commentOwnerName: owner,
+              likesOfComment: likesNumber,
+              commentDate: commentDate,
               scrapDate: getTime(),
             });
           // Verificar si el comentario tiene respuestas
-          if (comment.responses && comment.responses.length > 0) {
-            for (const response of comment.responses) {
+          if (responses && responses.length > 0) {
+            for (const response of responses) {
+              const { finalComment, commentDate, owner } = response;
               // Crear y guardar cada respuesta, pasando el ID del comentario principal como FK
               await this.commentRepository.createCommentOrUpdate({
-                comment: response.finalComment,
+                comment: finalComment,
                 post,
-                commentOwnerName: response.owner,
-                commentDate: response.commentDate,
+                commentOwnerName: owner,
+                commentDate: commentDate,
                 originalCommentId: savedComment,
                 scrapDate: getTime(),
               });

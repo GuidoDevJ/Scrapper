@@ -23,6 +23,9 @@ export class InstagramPost {
   @Column({ nullable: true })
   numberOfLikes: number;
 
+  @Column({ nullable: true })
+  numberOfComments: number;
+
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   scrapDate: string;
 

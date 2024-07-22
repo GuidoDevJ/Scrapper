@@ -3,6 +3,7 @@ export interface InstagramPostDetails {
   imgElements: string[];
   allCom: Comment[];
   videoElements: [];
+  numberOfComments: number;
   likes: number;
   datePost: string;
 }

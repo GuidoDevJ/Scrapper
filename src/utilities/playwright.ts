@@ -204,6 +204,7 @@ export const getInstagramPostData = async (
       return {
         title,
         allCom: [],
+        numberOfComments: 0,
         imgElements,
         videoElements,
         datePost,
@@ -315,6 +316,7 @@ export const getInstagramPostData = async (
       return {
         title,
         allCom: commentsDivs,
+        numberOfComments: commentsDivs.length,
         imgElements,
         videoElements,
         datePost,
@@ -386,6 +388,7 @@ export const getInstagramPostData = async (
     return {
       title,
       allCom: commentsDivs,
+      numberOfComments: commentsDivs.length,
       imgElements,
       videoElements,
       datePost,
@@ -398,4 +401,3 @@ export const getInstagramPostData = async (
   }
 };
 export { chromium };
-
