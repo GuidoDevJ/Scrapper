@@ -1,10 +1,11 @@
 import { DataSource, Repository } from 'typeorm';
 import { CommentEntity } from '../entities/Comments';
+import { AppDataSource } from '../db/index';
 
 export class CommentRepository {
   private commentsRepository: Repository<CommentEntity>;
-  constructor(dataSource: DataSource) {
-    this.commentsRepository = dataSource.getRepository(CommentEntity);
+  constructor() {
+    this.commentsRepository = AppDataSource.getRepository(CommentEntity);
   }
   async createCommentOrUpdate(comment: any) {
     const existComment = await this.checkIfExist(

@@ -1,28 +1,27 @@
 import { DataSource } from 'typeorm';
-import { UserRepository } from '../db/repositories/UserInstagramAccount';
-import { InstagramPostRepository } from '../db/repositories/InstagramPost';
-import { CommentRepository } from '../db/repositories/CommentPosts';
+import { UserRepository } from '../repositories/UserInstagramAccount';
+import { InstagramPostRepository } from '../repositories/InstagramPost';
+import { CommentRepository } from '../repositories/CommentPosts';
 import { getInstagramPostData } from '../utilities/playwright';
 import { getTime } from '../utilities/getTime';
-import { AccountRepository } from '../db/repositories/Account';
-import { AccountEntity } from '../db/entities/Account';
+import { AccountRepository } from '../repositories/Account';
+import { AccountEntity } from '../entities/Account';
 
 export class InstagramScrapperService {
   private userRepository: UserRepository;
   private instagramPostRepository: InstagramPostRepository;
   private commentRepository: CommentRepository;
   private accountRepository: AccountRepository;
-  constructor(dataSource: DataSource) {
-    this.userRepository = new UserRepository(dataSource);
-    this.instagramPostRepository = new InstagramPostRepository(dataSource);
-    this.commentRepository = new CommentRepository(dataSource);
-    this.accountRepository = new AccountRepository(dataSource);
+  constructor() {
+    this.userRepository = new UserRepository();
+    this.instagramPostRepository = new InstagramPostRepository();
+    this.commentRepository = new CommentRepository();
+    this.accountRepository = new AccountRepository();
   }
 
   async processData(data: any, account: AccountEntity) {
     // Extraer las propiedades necesarias de 'data'
     const { links, followers, following, posts, profileImg } = data;
-
     // Crear un nuevo usuario
     const newUser = await this.userRepository.createUserOrUpdate({
       followers,

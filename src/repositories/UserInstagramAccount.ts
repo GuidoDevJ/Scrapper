@@ -1,10 +1,11 @@
 import { DataSource, Repository } from 'typeorm';
 import { InstagramUserAccount } from '../entities/InstagramUserAccount';
+import { AppDataSource } from '../db';
 
 export class UserRepository {
   private repository: Repository<InstagramUserAccount>;
-  constructor(dataSource: DataSource) {
-    this.repository = dataSource.getRepository(InstagramUserAccount);
+  constructor() {
+    this.repository = AppDataSource.getRepository(InstagramUserAccount);
   }
 
   async createUserOrUpdate(InstagramUser: any) {

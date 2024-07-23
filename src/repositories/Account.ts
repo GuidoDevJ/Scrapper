@@ -1,17 +1,19 @@
 import { DataSource, Repository } from 'typeorm';
 import { AccountEntity } from '../entities/Account';
+import { AppDataSource } from '../db';
 
 export class AccountRepository {
   private accountRepository: Repository<AccountEntity>;
 
-  constructor(dataSource: DataSource) {
-    this.accountRepository = dataSource.getRepository(AccountEntity);
+  constructor() {
+    this.accountRepository = AppDataSource.getRepository(AccountEntity);
   }
 
   public async createAccountOrUpdate(
     account: AccountEntity
   ): Promise<AccountEntity> {
     const userExist = await this.findAndUpdate(account.accountURL);
+    console.log('uUSEEE,USER', userExist);
     if (!userExist) return this.save(account);
     return userExist;
   }
@@ -20,6 +22,7 @@ export class AccountRepository {
   }
 
   private async save(account: AccountEntity): Promise<AccountEntity> {
+    console.log('Hola', account);
     return this.accountRepository.save(account);
   }
 
@@ -30,6 +33,7 @@ export class AccountRepository {
   }
 
   private async getAll(): Promise<AccountEntity[]> {
+    console.log('Hola');
     return this.accountRepository.find();
   }
 }

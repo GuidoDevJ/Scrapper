@@ -73,16 +73,16 @@ const getProfileData = async (page: Page) => {
 
 const getPostLinks = async (page: Page) => {
   return await page.evaluate(() => {
-    const article = document.querySelector('article');
-    if (!article) return [];
-
+    const main = document.querySelector('main');
+    if (!main) return [];
     const postDivs = Array.from(
-      article.querySelectorAll('div > div > div > div')
+      main.querySelectorAll('div > div > div > div > div')
     );
     const linksArray = postDivs.map((postDiv) => {
       const links = postDiv.querySelectorAll('a');
       return Array.from(links).map((link) => link.href);
     });
+
     return linksArray.flat();
   });
 };
@@ -126,6 +126,7 @@ export const getInstagramPosts = async (username: string): Promise<AllData> => {
         await page.waitForTimeout(10000);
 
         const links = await getPostLinks(page);
+        console.log('Links ==>', links);
         links.forEach((link: string) => {
           if (!allLinks.has(link)) {
             allLinks.add(link);
@@ -135,6 +136,7 @@ export const getInstagramPosts = async (username: string): Promise<AllData> => {
     }
 
     allData.links = Array.from(allLinks);
+    await page.waitForTimeout(5000);
     await browser.close();
     return allData;
   } catch (error) {
@@ -180,6 +182,13 @@ export const getInstagramPostData = async (
       const likesHTML = likesElement
         ? likesElement[likesElement.length - 1].innerHTML
         : '0';
+      console.log({
+        title: title?.replace(deleteTags, ''),
+        imgElements,
+        videoElements: videoElements.length > 0 ? videoElements : [''],
+        datePost: date,
+        likes: parseInt(likesHTML) ? parseInt(likesHTML) : 0,
+      });
       return {
         title: title?.replace(deleteTags, ''),
         imgElements,
@@ -196,7 +205,6 @@ export const getInstagramPostData = async (
       );
       return noCommentsSpan !== undefined;
     });
-    console.log('SOY EL NOCOMMETS ===>', noCommentsYet);
     if (noCommentsYet) {
       const { title, imgElements, videoElements, datePost, likes } =
         data as any;

@@ -1,6 +1,6 @@
 import path from 'path';
 import * as fs from 'fs';
-import { conectWithRetry } from '../db/index';
+import { AppDataSource, conectWithRetry } from '../db/index';
 import { InstagramScrapperService } from '../services/InstagramService';
 
 const seedData = async () => {
@@ -9,8 +9,8 @@ const seedData = async () => {
   const fileContent = fs.readFileSync(filePath, 'utf-8');
   const accounts = JSON.parse(fileContent);
   try {
-    const appDataSource = (await conectWithRetry()) as any;
-    const instagramService = new InstagramScrapperService(appDataSource);
+    await AppDataSource.initialize();
+    const instagramService = new InstagramScrapperService();
     for (const account of accounts) {
       await instagramService.seedAccountData(account);
     }

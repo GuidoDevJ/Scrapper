@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node ./build/index.js",
+    "start": "pm2-runtime ecosystem.config.js --env production",
     "dev": "ts-node-dev src/index.ts",
     "seed": "ts-node-dev src/utilities/seed.ts"
   },

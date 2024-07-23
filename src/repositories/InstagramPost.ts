@@ -1,10 +1,11 @@
 import { DataSource, Repository } from 'typeorm';
 import { InstagramPost } from '../entities/InstagramPost';
+import { AppDataSource } from '../db';
 
 export class InstagramPostRepository {
   private instagramPostRepository: Repository<InstagramPost>;
-  constructor(dataSource: DataSource) {
-    this.instagramPostRepository = dataSource.getRepository(InstagramPost);
+  constructor() {
+    this.instagramPostRepository = AppDataSource.getRepository(InstagramPost);
   }
 
   async createPost(instagramPost: any) {

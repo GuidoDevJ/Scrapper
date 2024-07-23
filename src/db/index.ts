@@ -1,5 +1,9 @@
 import { DataSource } from 'typeorm';
 import { envs } from '../config';
+import { AccountEntity } from '../entities/Account';
+import { CommentEntity } from '../entities/Comments';
+import { InstagramPost } from '../entities/InstagramPost';
+import { InstagramUserAccount } from '../entities/InstagramUserAccount';
 export const AppDataSource = new DataSource({
   type: envs.dbName as any,
   host: envs.dbHost,
@@ -7,9 +11,9 @@ export const AppDataSource = new DataSource({
   username: envs.dbUser,
   password: envs.dbPassword,
   database: envs.dbName,
-  // logging: true,
+  logging: true,
   synchronize: true,
-  entities: ['src/db/entities/*.ts'],
+  entities: [AccountEntity, CommentEntity, InstagramPost, InstagramUserAccount],
 });
 const MAX_RETRIES = 10;
 const RETRY_DELAY = 5000; // 5 segundos

@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { InstagramUserAccount } from './InstagramUserAccount';
 import { CommentEntity } from './Comments';
-import { TypesOfContentSocialMedia } from '../../types/types';
+import { TypesOfContentSocialMedia } from '../types/types';
 
 @Entity()
 export class InstagramPost {

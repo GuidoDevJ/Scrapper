@@ -1,13 +1,14 @@
-import { conectWithRetry } from './db/index';
+import { AppDataSource, conectWithRetry } from './db/index';
 import { InstagramScrapperService } from './services/InstagramService';
 import { getInstagramPosts } from './utilities/playwright';
 
 const main = async () => {
   try {
-    const appDataSource = (await conectWithRetry()) as any;
-    const instagramService = new InstagramScrapperService(appDataSource);
+    (await AppDataSource.initialize()) as any;
+    const instagramService = new InstagramScrapperService();
     const accounts = await instagramService.getAllAccounts();
-
+    console.log('Accounts', accounts);
+    if (accounts.length <= 0) return 'No hay cuentas en la base de datos';
     for (const account of accounts) {
       const data = await getInstagramPosts(account.accountURL);
       await instagramService.processData(data, account);

@@ -4,3 +4,5 @@ instagram-session.json
 postgres
 sessionCookies.json
 dist
+build
+seed.jsons

@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { AccountType } from '../../types/types';
+import { AccountType } from '../types/types';
 
 @Entity()
 export class AccountEntity {
