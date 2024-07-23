@@ -1,22 +1,31 @@
-import { AppDataSource, conectWithRetry } from './db/index';
+import { AppDataSource } from './db/index';
 import { InstagramScrapperService } from './services/InstagramService';
 import { getInstagramPosts } from './utilities/playwright';
 
 const main = async () => {
   try {
-    (await AppDataSource.initialize()) as any;
+    // Inicializa la base de datos
+    await AppDataSource.initialize();
+
+    // Crea una instancia del servicio de Instagram
     const instagramService = new InstagramScrapperService();
+
+    // Obtén todas las cuentas
     const accounts = await instagramService.getAllAccounts();
-    console.log('Accounts', accounts);
-    if (accounts.length <= 0) return 'No hay cuentas en la base de datos';
+
+    // Verifica si hay cuentas para procesar
+    if (accounts.length === 0) {
+      await AppDataSource.destroy();
+    }
+
+    // Procesa cada cuenta de Instagram
     for (const account of accounts) {
       const data = await getInstagramPosts(account.accountURL);
       await instagramService.processData(data, account);
     }
-    console.log('FIN');
   } catch (error: any) {
-    console.error(`Error al crear usuario: ${error.message}`);
-    console.error(`Detalles adicionales: ${error.stack}`);
+    console.error(`Error: ${error.message}`);
+    console.error(`Stack trace: ${error.stack}`);
   }
 };
 

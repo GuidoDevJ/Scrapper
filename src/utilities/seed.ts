@@ -1,6 +1,6 @@
 import path from 'path';
 import * as fs from 'fs';
-import { AppDataSource, conectWithRetry } from '../db/index';
+import { AppDataSource } from '../db/index';
 import { InstagramScrapperService } from '../services/InstagramService';
 
 const seedData = async () => {

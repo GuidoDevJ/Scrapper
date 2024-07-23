@@ -22,7 +22,6 @@ export class AccountRepository {
   }
 
   private async save(account: AccountEntity): Promise<AccountEntity> {
-    console.log('Hola', account);
     return this.accountRepository.save(account);
   }
 
@@ -33,7 +32,6 @@ export class AccountRepository {
   }
 
   private async getAll(): Promise<AccountEntity[]> {
-    console.log('Hola');
     return this.accountRepository.find();
   }
 }

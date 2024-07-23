@@ -1,26 +1,21 @@
-# Use the official Node.js image as the base image
-FROM node:20-bookworm
-
-# Install Playwright and its dependencies
-RUN npx -y playwright@1.45.1 install --with-deps
+# Start with a base Docker image that includes Playwright and a specific browser version.
+FROM mcr.microsoft.com/playwright:v1.39.0-jammy
 
 WORKDIR /app
 
 COPY package*.json ./
 
 RUN npm ci
-# Instala PM2 globalmente
+
+COPY . .
+
+# Install PM2 globally
 RUN npm install -g pm2
 
-# Configura las claves públicas y secretas de PM2
+# Configure the public and secret keys for PM2
 ENV PM2_PUBLIC_KEY q37ei1gxbc6luaq
 ENV PM2_SECRET_KEY l40xw63ilgzfmx0
 
-# Copia el resto del código de la aplicación al contenedor
-COPY . .
-
-# Compila el proyecto TypeScript
 RUN npm run build
 
-# Comando para ejecutar tu aplicación usando PM2
-CMD ["npm", "start"]
+CMD ["pm2-runtime", "start", "npm", "--", "start"]
