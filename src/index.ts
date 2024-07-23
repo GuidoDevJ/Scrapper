@@ -1,6 +1,7 @@
 import { AppDataSource } from './db/index';
 import { InstagramScrapperService } from './services/InstagramService';
 import { getInstagramPosts } from './utilities/playwright';
+const pattern = /instagram\.com\/([A-Za-z0-9._]+)/;
 
 const main = async () => {
   try {
@@ -20,8 +21,16 @@ const main = async () => {
 
     // Procesa cada cuenta de Instagram
     for (const account of accounts) {
-      const data = await getInstagramPosts(account.accountURL);
-      await instagramService.processData(data, account);
+      const match = account.accountURL.match(pattern);
+      if (match) {
+        const username = match[1];
+        const data = await getInstagramPosts(username);
+        await instagramService.processData(data, account);
+      } else {
+        console.error(
+          `No se pudo extraer el nombre de usuario de la URL: ${account.accountURL}`
+        );
+      }
     }
   } catch (error: any) {
     console.error(`Error: ${error.message}`);

@@ -1,4 +1,3 @@
-import { DataSource } from 'typeorm';
 import { UserRepository } from '../repositories/UserInstagramAccount';
 import { InstagramPostRepository } from '../repositories/InstagramPost';
 import { CommentRepository } from '../repositories/CommentPosts';
