@@ -1,5 +1,5 @@
 # Start with a base Docker image that includes Playwright and a specific browser version.
-FROM mcr.microsoft.com/playwright:v1.39.0-jammy
+FROM mcr.microsoft.com/playwright:v1.45.3-jammy
 
 WORKDIR /app
 
@@ -18,4 +18,4 @@ ENV PM2_SECRET_KEY l40xw63ilgzfmx0
 
 RUN npm run build
 
-CMD ["pm2-runtime", "start", "npm", "--", "start"]
+CMD ["npm", "run", "start"]

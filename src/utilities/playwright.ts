@@ -2,6 +2,7 @@ import { Page, chromium } from 'playwright';
 import * as fs from 'fs';
 import { AllData, InstagramPostDetails } from '../types/types';
 import { envs } from '../config';
+import { getRandomProxy } from './proxyHelper';
 const sessionFilePath = './sessionCookies.json';
 
 // Función para guardar las cookies en un archivo
@@ -149,11 +150,21 @@ export const getInstagramPosts = async (username: string): Promise<AllData> => {
 export const getInstagramPostData = async (
   url: string
 ): Promise<InstagramPostDetails> => {
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
+  const { server, username: proxyUsername, password } = getRandomProxy();
+
+  const browser = await chromium.launch({
+    proxy: {
+      server: `http://191.102.248.8:8085`,
+      // username: proxyUsername,
+      password,
+    },
+  });
+  let context = await browser.newContext();
+
+  const page = await context.newPage();
   await loadSessionAndLogin(page);
   try {
-    await page.goto(url, { waitUntil: 'networkidle' });
+    await page.goto(url);
     await page.waitForSelector('main');
     const data = await page.evaluate(() => {
       const deleteTags = /<[^>]*>/g;
