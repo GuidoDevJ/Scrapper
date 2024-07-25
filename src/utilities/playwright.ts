@@ -29,10 +29,12 @@ async function loadSession(context: any) {
 // Función para iniciar sesión
 export const loginInstagram = async (page: Page) => {
   await page.goto('https://www.instagram.com/accounts/login/');
+  await page.waitForTimeout(5000); // Ajusta esto según tu necesidad
+
   await page.fill('input[name="username"]', envs.instagramUsername || '');
   await page.fill('input[name="password"]', envs.instagramPassword || '');
   await page.click('button[type="submit"]');
-  await page.waitForTimeout(5000); // Ajusta esto según tu necesidad
+  await page.waitForTimeout(50000); // Ajusta esto según tu necesidad
   await saveSession(page.context());
 };
 
@@ -89,7 +91,9 @@ const getPostLinks = async (page: Page) => {
 };
 
 export const getInstagramPosts = async (username: string): Promise<AllData> => {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({
+    headless: false,
+  });
   const context = await browser.newContext();
   const page = await context.newPage();
 
@@ -151,11 +155,12 @@ export const getInstagramPostData = async (
   url: string
 ): Promise<InstagramPostDetails> => {
   const { server, username: proxyUsername, password } = getRandomProxy();
-
+  console.log(`http://${server}`);
   const browser = await chromium.launch({
+    headless: false,
     proxy: {
-      server: `http://191.102.248.8:8085`,
-      // username: proxyUsername,
+      server: `http://${server}`,
+      username: proxyUsername,
       password,
     },
   });
@@ -163,51 +168,47 @@ export const getInstagramPostData = async (
 
   const page = await context.newPage();
   await loadSessionAndLogin(page);
+  // Capturar los mensajes de console.log de la página
+  page.on('console', (msg) => console.log(msg.text()));
   try {
-    await page.goto(url);
+    await page.goto(url, { timeout: 60000, waitUntil: 'networkidle' });
     await page.waitForSelector('main');
     const data = await page.evaluate(() => {
       const deleteTags = /<[^>]*>/g;
 
-      const mainDiv = document.querySelector('main > div > div > div');
+      const mainDiv = document.querySelector('article > div');
       if (!mainDiv) return { images: '' };
-      const deepDiv = mainDiv.querySelector('div > div > div');
+      const deepDiv = mainDiv.children[1];
       if (!deepDiv) return { images: [], videos: [] };
-      const imgElements = Array.from(deepDiv.querySelectorAll('img')).map(
-        (img) => (img as HTMLImageElement).src
-      );
-      const videoElements = Array.from(deepDiv.querySelectorAll('video')).map(
-        (video) => (video as HTMLVideoElement).src
-      );
-      const title =
-        mainDiv.children[1].children[0].children[2].children[0].children[0].children[0].children[1].children[0].children[0].querySelector(
-          'div'
-        )?.children[1].innerHTML;
-      const likesElement =
-        mainDiv.children[1].children[0]?.children[3]?.children[1].querySelectorAll(
-          'span'
-        );
-      const date = mainDiv.children[1].children[0]?.children[3]
+      const imgElements = Array.from(
+        mainDiv?.children[0].querySelectorAll('img')
+      ).map((img) => (img as HTMLImageElement).src);
+      const videoElements = Array.from(
+        mainDiv?.children[0].querySelectorAll('video')
+      ).map((video) => (video as HTMLVideoElement).src);
+      const title = deepDiv?.children[0]?.children[1]?.children[2]
+        ?.querySelector('ul')
+        ?.querySelector('h1')?.innerHTML;
+      const likesElement = deepDiv?.children[0]?.children[1]?.children[1]
+        ?.querySelector('a')
+        ?.children[0]?.querySelector('span')?.innerHTML;
+
+      const date = deepDiv?.children[0]?.children[1]
+        ?.querySelector('ul')
+        ?.querySelector('li')
         ?.querySelector('time')
         ?.getAttribute('datetime');
-      const likesHTML = likesElement
-        ? likesElement[likesElement.length - 1].innerHTML
-        : '0';
-      console.log({
-        title: title?.replace(deleteTags, ''),
-        imgElements,
-        videoElements: videoElements.length > 0 ? videoElements : [''],
-        datePost: date,
-        likes: parseInt(likesHTML) ? parseInt(likesHTML) : 0,
-      });
       return {
         title: title?.replace(deleteTags, ''),
         imgElements,
         videoElements: videoElements.length > 0 ? videoElements : [''],
         datePost: date,
-        likes: parseInt(likesHTML) ? parseInt(likesHTML) : 0,
+        likes: parseInt(likesElement as string)
+          ? parseInt(likesElement as string)
+          : 0,
       };
     });
+    console.log('data====>', data);
     const noCommentsYet = await page.evaluate(() => {
       const noCommentsSpan = Array.from(document.querySelectorAll('span')).find(
         (span) =>
@@ -233,12 +234,15 @@ export const getInstagramPostData = async (
     const scrollUntilEnd = async () => {
       let previousScrollTop = 0;
       let canScroll: any = true;
-
+      console.log('Entre en scrollUntilEnd');
       while (canScroll) {
         canScroll = await page.evaluate(() => {
-          const mainDiv = document.querySelector('main > div > div > div')
-            ?.children[1].children[0].children[2];
-
+          const mainDiv = document
+            .querySelector('article > div')
+            ?.children[1]?.children[0].children[1].children[2].querySelector(
+              'ul'
+            );
+          console.log('MainDivScrol==>', mainDiv);
           const hiddenCommentsSpan = Array.from(
             document.querySelectorAll('span')
           ).find(
@@ -280,27 +284,36 @@ export const getInstagramPostData = async (
     const commentsDivs: any[] = await page.evaluate(() => {
       const checkLikes = /(\d+)\s*(likes?|me\s+gustas?)/i;
       const deleteTags = /<[^>]*>/g;
-      const mainDiv = document.querySelector('main > div > div > div');
-      const ownerCommentsContainer =
-        mainDiv?.children[1]?.children[0]?.children[2]?.children[0]
-          ?.children[1];
+      const ownerCommentsContainer = document
+        .querySelector('article > div')
+        ?.children[1]?.children[0]?.children[1]?.children[2]?.querySelector(
+          'ul'
+        )?.children[2];
+
       if (ownerCommentsContainer) {
         const allComments = Array.from(ownerCommentsContainer.children);
 
         let allCom = allComments.map((commentElement) => {
-          const ownerElement = commentElement.querySelector('span a span');
-          const owner = ownerElement ? ownerElement.innerHTML.trim() : '';
-          if (commentElement.children[1]) {
-            const span = commentElement.children[1].querySelector('span');
-            if (span) span.click();
+          const ownerElement =
+            commentElement?.querySelector('span a')?.innerHTML;
+          const owner = ownerElement ? ownerElement.trim() : '';
+          if (commentElement.querySelector('li ul li button')) {
+            const button = commentElement.querySelector(
+              'li ul li button'
+            ) as HTMLButtonElement;
+            if (button) button.click();
           }
-          const commentText =
-            commentElement?.children[0]?.children[0]?.children[1]?.children[0]
-              ?.children[0]?.children[0]?.children[1]?.children[0]?.innerHTML;
-          const finalComment = commentText ? commentText.trim() : '';
-          const likesOfComment =
-            commentElement?.children[0]?.children[0]?.children[1]?.children[0]?.children[1].querySelector(
+          const commentText = commentElement
+            .querySelector('ul li')
+            ?.children[0]?.children[0]?.children[1]?.children[1]?.querySelector(
               'span'
+            )?.innerHTML;
+          const finalComment = commentText ? commentText.trim() : '';
+          const likesOfComment = commentElement
+            ?.querySelector('ul')
+            ?.children[0]?.querySelector('li')
+            ?.children[0]?.children[0]?.children[1]?.children[2]?.querySelector(
+              'button span'
             )?.innerHTML as string;
           const match = checkLikes.exec(likesOfComment);
           let likesNumber = 0;
@@ -308,9 +321,14 @@ export const getInstagramPostData = async (
             likesNumber = parseInt(match[1], 10);
           }
           const dateOfComment =
-            commentElement?.children[0]
-              ?.querySelector('time')
-              ?.getAttribute('datetime') || '';
+            commentElement?.querySelector('time')?.getAttribute('datetime') ||
+            '';
+          console.log({
+            owner,
+            finalComment: finalComment.replace(deleteTags, ''),
+            likesNumber,
+            commentDate: dateOfComment,
+          });
           return {
             owner,
             finalComment: finalComment.replace(deleteTags, ''),
@@ -319,7 +337,7 @@ export const getInstagramPostData = async (
           };
         });
         allCom = allCom.filter((comment) => comment.owner !== '');
-
+        console.log('SOY EL ALLCOMMENTS ==>', allCom);
         return allCom;
       }
       return [];
@@ -328,6 +346,7 @@ export const getInstagramPostData = async (
     // Si no existen respuestas a los comentarios debe retornar solamente los comentarios
     try {
       await page.waitForSelector('ul div', { timeout: 5000 });
+      console.log('SUPUESTAMENTE EXISTEN RESPUESTAS A LOS COMENTARIOS');
     } catch (e) {
       const { title, datePost, imgElements, likes, videoElements } =
         data as InstagramPostDetails;
