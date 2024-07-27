@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import path from 'path';
 
 const url =
-  'https://proxy.webshare.io/api/v2/proxy/list/download/wahfrhzvmmrxwzcdgpalritjffpgdkbsrwjkfptv/-/any/username/direct/-/';
+  'https://proxy.webshare.io/api/v2/proxy/list/download/uwwktpvvegqxniokjlxbgfwhvkaheccumpvvcsyt/-/any/username/direct/-/';
 const outputDir = path.join(__dirname, '..', '..');
 const outputFile = path.join(outputDir, 'proxies.json');
 

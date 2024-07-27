@@ -8,7 +8,7 @@ const main = async () => {
   try {
     // Inicializa la base de datos
     await AppDataSource.initialize();
-    // await fetchProxies();
+    await fetchProxies();
     // // Crea una instancia del servicio de Instagram
     const instagramService = new InstagramScrapperService();
 
@@ -19,12 +19,6 @@ const main = async () => {
     if (accounts.length === 0) {
       await AppDataSource.destroy();
     }
-    // const accounts: [any] = [
-    //   {
-    //     accountType: 'INSTAGRAM',
-    //     accountURL: 'https://www.instagram.com/gerardobalmaceda/',
-    //   },
-    // ];
     // Procesa cada cuenta de Instagram
     for (const account of accounts) {
       const match = account.accountURL.match(pattern);

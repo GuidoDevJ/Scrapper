@@ -34,9 +34,12 @@ export class InstagramScrapperService {
     if (posts === 0) {
       return newUser;
     }
+    const wait = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
 
     // // Procesar cada enlace de Instagram
     for (const link of links) {
+      await wait(40000);
       try {
         // Obtener datos detallados de la publicación de Instagram
         const { allCom, ...postData } = await getInstagramPostData(link);
