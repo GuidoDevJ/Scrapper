@@ -88,7 +88,6 @@ export class InstagramScrapperService {
         }
       } catch (error) {
         console.error(`Error processing post from link ${link}:`, error);
-        // Puedes manejar el error de manera adecuada según tus necesidades
       }
     }
   }

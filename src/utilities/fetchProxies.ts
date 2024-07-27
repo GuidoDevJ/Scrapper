@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import path from 'path';
+import { envs } from '../config';
 
-const url =
-  'https://proxy.webshare.io/api/v2/proxy/list/download/uwwktpvvegqxniokjlxbgfwhvkaheccumpvvcsyt/-/any/username/direct/-/';
+const url = `${envs.proxyUrl}`;
 const outputDir = path.join(__dirname, '..', '..');
 const outputFile = path.join(outputDir, 'proxies.json');
 
