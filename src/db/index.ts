@@ -11,7 +11,7 @@ export const AppDataSource = new DataSource({
   username: envs.dbUser,
   password: envs.dbPassword,
   database: envs.dbName,
-  logging: true,
+  logging: false,
   synchronize: true,
   entities: [AccountEntity, CommentEntity, InstagramPost, InstagramUserAccount],
 });

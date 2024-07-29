@@ -1,14 +1,15 @@
 import { AppDataSource } from './db/index';
 import { InstagramScrapperService } from './services/InstagramService';
-import { getInstagramPosts } from './utilities/playwright';
+import { fetchProxies } from './utilities/fetchProxies';
+import { getInstagramPosts } from './utilities/playwright/playwright';
 const pattern = /instagram\.com\/([A-Za-z0-9._]+)/;
 
 const main = async () => {
   try {
     // Inicializa la base de datos
     await AppDataSource.initialize();
-
-    // Crea una instancia del servicio de Instagram
+    await fetchProxies();
+    // // Crea una instancia del servicio de Instagram
     const instagramService = new InstagramScrapperService();
 
     // Obtén todas las cuentas
@@ -18,7 +19,6 @@ const main = async () => {
     if (accounts.length === 0) {
       await AppDataSource.destroy();
     }
-
     // Procesa cada cuenta de Instagram
     for (const account of accounts) {
       const match = account.accountURL.match(pattern);

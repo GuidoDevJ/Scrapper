@@ -1,7 +1,7 @@
 import { UserRepository } from '../repositories/UserInstagramAccount';
 import { InstagramPostRepository } from '../repositories/InstagramPost';
 import { CommentRepository } from '../repositories/CommentPosts';
-import { getInstagramPostData } from '../utilities/playwright';
+import { getInstagramPostData } from '../utilities/playwright/playwright';
 import { getTime } from '../utilities/getTime';
 import { AccountRepository } from '../repositories/Account';
 import { AccountEntity } from '../entities/Account';
@@ -34,13 +34,17 @@ export class InstagramScrapperService {
     if (posts === 0) {
       return newUser;
     }
+    const wait = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
 
     // // Procesar cada enlace de Instagram
     for (const link of links) {
+      await wait(40000);
       try {
         // Obtener datos detallados de la publicación de Instagram
         const { allCom, ...postData } = await getInstagramPostData(link);
         const { title, likes, datePost, numberOfComments } = postData;
+
         // Crear una nueva publicación en Instagram
         const post = await this.instagramPostRepository.createPost({
           media: [...postData.imgElements, ...postData.videoElements],
@@ -84,7 +88,6 @@ export class InstagramScrapperService {
         }
       } catch (error) {
         console.error(`Error processing post from link ${link}:`, error);
-        // Puedes manejar el error de manera adecuada según tus necesidades
       }
     }
   }
