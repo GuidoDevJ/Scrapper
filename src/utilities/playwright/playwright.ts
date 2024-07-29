@@ -23,17 +23,8 @@ const handle429 = async () => {
 };
 export const getInstagramPosts = async (username: string): Promise<AllData> => {
   const { server, username: proxyUsername, password } = getRandomProxy() as any;
-  const browser = await chromium.launch({
-    headless: false,
-    // proxy: {
-    //   server,
-    //   username: proxyUsername,
-    //   password,
-    // },
-  });
-  let context = await browser.newContext({
-    // userAgent: getRandomUserAgent(),
-  });
+  const browser = await chromium.launch();
+  let context = await browser.newContext();
   const page = await context.newPage();
 
   await loadSessionAndLogin(page);
@@ -96,7 +87,6 @@ export const getInstagramPostData = async (
 ): Promise<InstagramPostDetails> => {
   const { server, username: proxyUsername, password } = getRandomProxy() as any;
   const browser = await chromium.launch({
-    headless: false,
     proxy: {
       server,
       username: proxyUsername,
@@ -118,20 +108,11 @@ export const getInstagramPostData = async (
     await retryOperation(page, () =>
       page.goto(url, { timeout: 100000, waitUntil: 'networkidle' })
     );
-    // const response = await page.waitForResponse(
-    //   (response) => response.status() === 429,
-    //   { timeout: 30000 }
-    // );
-    // if (response) {
-    //   await handle429();
-    //   await browser.close();
-    //   return getInstagramPostData(url);
-    // }
 
     await page.waitForSelector('main');
-    // Obtener y verificar el User-Agent
-    const userAgent = await page.evaluate(() => navigator.userAgent);
-    console.log(`User-Agent utilizado: ${userAgent}`);
+    // // Obtener y verificar el User-Agent
+    // const userAgent = await page.evaluate(() => navigator.userAgent);
+    // console.log(`User-Agent utilizado: ${userAgent}`);
     // Evaluar la página con manejo de errores
     const data = await page.evaluate(() => {
       const deleteTags = /<[^>]*>/g;
