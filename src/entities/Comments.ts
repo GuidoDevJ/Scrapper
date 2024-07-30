@@ -22,14 +22,18 @@ export class CommentEntity {
   likesOfComment: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' }) // Ejemplo de columna date
-  scrapDate: string;
+  scrapDate: Date;
 
-  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' }) // Ejemplo de columna date
-  commentDate: string;
+  @Column({
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+    nullable: true,
+  }) // Ejemplo de columna date
+  commentDate: Date | null;
 
   @ManyToOne(() => InstagramPost, (post) => post.comments)
   post: InstagramPost;
-  // Nueva propiedad originalCommentId para referenciar al comentario original
+
   @ManyToOne(() => CommentEntity, { nullable: true })
   @JoinColumn({ name: 'originalCommentId' })
   originalComment: CommentEntity;

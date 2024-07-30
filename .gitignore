@@ -5,5 +5,5 @@ postgres
 sessionCookies.json
 dist
 build
-seed.jsons
+seed.json
 proxies.json

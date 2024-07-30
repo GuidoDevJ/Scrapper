@@ -222,7 +222,6 @@ export const getInstagramPostData = async (
     };
 
     await scrollUntilEnd();
-
     const commentsDivs: any[] = await page
       .evaluate(() => {
         const checkLikes = /(\d+)\s*(likes?|me\s+gustas?)/i;
@@ -255,10 +254,11 @@ export const getInstagramPostData = async (
             if (match) {
               likesNumber = parseInt(match[1], 10);
             }
+
             const dateOfComment =
               commentElement?.children[0]
                 ?.querySelector('time')
-                ?.getAttribute('datetime') || '';
+                ?.getAttribute('datetime') || null;
             return {
               owner,
               finalComment: finalComment.replace(deleteTags, ''),
@@ -320,15 +320,14 @@ export const getInstagramPostData = async (
                 const finalOwner = ownerComment ? ownerComment.trim() : '';
                 const text =
                   div.children[0].children[1].children[0].children[0]
-                    .children[0].children[1].innerHTML;
-                const dateOfComment =
-                  div.children[0].children[1].children[0].children[0].children[0].children[0]
-                    .querySelector('time')
-                    ?.getAttribute('datetime');
+                    .children[0].children[1].innerHTML || '';
+                const dateOfComment = commentElement.children[1]
+                  .querySelector('time')
+                  .getAttribute('datetime');
                 return {
                   originalOwnerOfCommet: owner,
                   owner: finalOwner,
-                  finalComment: text.replace(deleteTags, ''),
+                  finalComment: text.replace(deleteTags, '') || '',
                   commentDate: dateOfComment,
                 };
               });

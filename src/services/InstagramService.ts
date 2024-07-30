@@ -19,9 +19,9 @@ export class InstagramScrapperService {
   }
 
   async processData(data: any, account: AccountEntity) {
-    // Extraer las propiedades necesarias de 'data'
+    // // Extraer las propiedades necesarias de 'data'
     const { links, followers, following, posts, profileImg } = data;
-    // Crear un nuevo usuario
+    // // Crear un nuevo usuario
     const newUser = await this.userRepository.createUserOrUpdate({
       followers,
       following,
@@ -36,7 +36,6 @@ export class InstagramScrapperService {
     }
     const wait = (ms: number) =>
       new Promise((resolve) => setTimeout(resolve, ms));
-
     // // Procesar cada enlace de Instagram
     for (const link of links) {
       await wait(40000);
@@ -44,7 +43,6 @@ export class InstagramScrapperService {
         // Obtener datos detallados de la publicación de Instagram
         const { allCom, ...postData } = await getInstagramPostData(link);
         const { title, likes, datePost, numberOfComments } = postData;
-
         // Crear una nueva publicación en Instagram
         const post = await this.instagramPostRepository.createPost({
           media: [...postData.imgElements, ...postData.videoElements],
@@ -61,6 +59,7 @@ export class InstagramScrapperService {
           // Crear un nuevo comentario
           const { finalComment, owner, commentDate, likesNumber, responses } =
             comment;
+          console.log(finalComment, owner, commentDate, likesNumber, responses);
           const savedComment =
             await this.commentRepository.createCommentOrUpdate({
               comment: finalComment,
