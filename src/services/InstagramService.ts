@@ -36,7 +36,7 @@ export class InstagramScrapperService {
     }
     const wait = (ms: number) =>
       new Promise((resolve) => setTimeout(resolve, ms));
-    let linksOfPostFinals = links.length > 50 ? links.slice(0, 30) : links;
+    let linksOfPostFinals = links.length > 30 ? links.slice(0, 30) : links;
     // // Procesar cada enlace de Instagram
     for (const link of linksOfPostFinals) {
       await wait(60000);
