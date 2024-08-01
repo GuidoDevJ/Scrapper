@@ -36,9 +36,10 @@ export class InstagramScrapperService {
     }
     const wait = (ms: number) =>
       new Promise((resolve) => setTimeout(resolve, ms));
+    let linksOfPostFinals = links.length > 50 ? links.slice(0, 30) : links;
     // // Procesar cada enlace de Instagram
-    for (const link of links) {
-      await wait(40000);
+    for (const link of linksOfPostFinals) {
+      await wait(60000);
       try {
         // Obtener datos detallados de la publicación de Instagram
         const { allCom, ...postData } = await getInstagramPostData(link);
@@ -89,6 +90,7 @@ export class InstagramScrapperService {
         console.error(`Error processing post from link ${link}:`, error);
       }
     }
+    await wait(4 * 60 * 60 * 1000); // 4 hours in milliseconds
   }
   async getAllAccounts() {
     return await this.accountRepository.getAccounts();

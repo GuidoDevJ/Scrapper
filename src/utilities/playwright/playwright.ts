@@ -23,7 +23,9 @@ const handle429 = async () => {
 };
 export const getInstagramPosts = async (username: string): Promise<AllData> => {
   const { server, username: proxyUsername, password } = getRandomProxy() as any;
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({
+    headless: false,
+  });
   let context = await browser.newContext();
   const page = await context.newPage();
 
@@ -52,14 +54,16 @@ export const getInstagramPosts = async (username: string): Promise<AllData> => {
     let currentHeight = 0;
     let reachedEnd = false;
     const allLinks = new Set<string>();
+    let iterations = 0;
+    const maxIterations = 100; // Limite de iteraciones para evitar bucles infinitos
 
-    while (!reachedEnd) {
+    while (!reachedEnd && iterations < maxIterations) {
       currentHeight = await page.evaluate(() => document.body.scrollHeight);
       if (currentHeight === prevHeight) {
         reachedEnd = true;
       } else {
         prevHeight = currentHeight;
-        await page.evaluate(() => window.scrollBy(0, window.innerHeight));
+        await page.evaluate(() => window.scrollBy(0, 100000));
         await page.waitForTimeout(randomTimeout(5000, 15000));
 
         const links = await getPostLinks(page);
@@ -69,6 +73,10 @@ export const getInstagramPosts = async (username: string): Promise<AllData> => {
           }
         });
       }
+      iterations++;
+      console.log(
+        `Iteration ${iterations}, currentHeight: ${currentHeight}, prevHeight: ${prevHeight}`
+      );
     }
 
     allData.links = Array.from(allLinks);
@@ -87,6 +95,7 @@ export const getInstagramPostData = async (
 ): Promise<InstagramPostDetails> => {
   const { server, username: proxyUsername, password } = getRandomProxy() as any;
   const browser = await chromium.launch({
+    headless: false,
     proxy: {
       server,
       username: proxyUsername,
