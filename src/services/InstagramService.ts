@@ -35,7 +35,9 @@ export class InstagramScrapperService {
     //   return newUser;
     // }
 
-    const links = ['https://www.instagram.com/p/C1bPFiUuw-t/'];
+    const links = [
+      'https://www.instagram.com/casinosdelmocona.sv/reel/C1NI7UcOqNY/',
+    ];
     // // Procesar cada enlace de Instagram
     for (const link of links) {
       try {
