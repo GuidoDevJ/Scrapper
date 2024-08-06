@@ -25,7 +25,7 @@ const handle429 = async () => {
 };
 export const getInstagramPosts = async (username: string): Promise<AllData> => {
   const browser = await chromium.launch({
-    headless: false,
+    // headless: false,
   });
   let context = await browser.newContext();
   const page = await context.newPage();
@@ -93,7 +93,7 @@ export const getInstagramPostData = async (
 ): Promise<InstagramPostDetails> => {
   const { server, username: proxyUsername, password } = getRandomProxy() as any;
   const browser = await chromium.launch({
-    headless: false,
+    // headless: false,
     proxy: {
       server,
       username: proxyUsername,
