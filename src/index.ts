@@ -9,13 +9,13 @@ const main = async () => {
     // Inicializa la base de datos
     await AppDataSource.initialize();
     await fetchProxies();
-    // // Crea una instancia del servicio de Instagram
+    // Crea una instancia del servicio de Instagram
     const instagramService = new InstagramScrapperService();
 
-    // Obtén todas las cuentas
+    // // Obtén todas las cuentas
     const accounts = await instagramService.getAllAccounts();
 
-    // Verifica si hay cuentas para procesar
+    // // Verifica si hay cuentas para procesar
     if (accounts.length === 0) {
       await AppDataSource.destroy();
     }

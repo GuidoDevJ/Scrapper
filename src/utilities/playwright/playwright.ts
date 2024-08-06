@@ -4,6 +4,8 @@ import { getRandomProxy } from '../proxyHelper';
 import { loadSessionAndLogin } from './loadsession';
 import { getPostLinks, getProfileData } from './dataInfo';
 import { randomTimeout, retryOperation } from '../optimization';
+import { extractComments } from '../scrapCommentsPost';
+import { scrapeData } from '../scrapPostData';
 const userAgents = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -22,7 +24,6 @@ const handle429 = async () => {
   await new Promise((resolve) => setTimeout(resolve, delay));
 };
 export const getInstagramPosts = async (username: string): Promise<AllData> => {
-  const { server, username: proxyUsername, password } = getRandomProxy() as any;
   const browser = await chromium.launch({
     headless: false,
   });
@@ -74,9 +75,6 @@ export const getInstagramPosts = async (username: string): Promise<AllData> => {
         });
       }
       iterations++;
-      console.log(
-        `Iteration ${iterations}, currentHeight: ${currentHeight}, prevHeight: ${prevHeight}`
-      );
     }
 
     allData.links = Array.from(allLinks);
@@ -123,44 +121,7 @@ export const getInstagramPostData = async (
     // const userAgent = await page.evaluate(() => navigator.userAgent);
     // console.log(`User-Agent utilizado: ${userAgent}`);
     // Evaluar la página con manejo de errores
-    const data = await page.evaluate(() => {
-      const deleteTags = /<[^>]*>/g;
-      const mainDiv = document.querySelector('main > div > div > div');
-      if (!mainDiv) return { images: '' };
-
-      const deepDiv = mainDiv.querySelector('div > div > div');
-      if (!deepDiv) return { images: [], videos: [] };
-
-      const imgElements = Array.from(deepDiv.querySelectorAll('img')).map(
-        (img) => (img as HTMLImageElement).src
-      );
-      const videoElements = Array.from(deepDiv.querySelectorAll('video')).map(
-        (video) => (video as HTMLVideoElement).src
-      );
-      const title =
-        mainDiv.children[1].children[0].children[2].children[0].children[0].children[0].children[1].children[0].children[0].querySelector(
-          'div'
-        )?.children[1].innerHTML;
-      const likesElement =
-        mainDiv.children[1].children[0]?.children[3]?.children[1].querySelectorAll(
-          'span'
-        );
-      const date = mainDiv.children[1].children[0]?.children[3]
-        ?.querySelector('time')
-        ?.getAttribute('datetime');
-      const likesHTML = likesElement
-        ? likesElement[likesElement.length - 1].innerHTML
-        : '0';
-
-      return {
-        title: title?.replace(deleteTags, ''),
-        imgElements,
-        videoElements: videoElements.length > 0 ? videoElements : [''],
-        datePost: date,
-        likes: parseInt(likesHTML) ? parseInt(likesHTML) : 0,
-      };
-    });
-
+    const data = await scrapeData(page);
     const noCommentsYet = await page.evaluate(() => {
       const noCommentsSpan = Array.from(document.querySelectorAll('span')).find(
         (span) =>
@@ -189,33 +150,60 @@ export const getInstagramPostData = async (
     const scrollUntilEnd = async () => {
       let canScroll = true;
 
+      const randomTimeout = (min: number, max: number) => {
+        return Math.floor(Math.random() * (max - min + 1) + min);
+      };
+
       while (canScroll) {
         canScroll = (await page.evaluate(() => {
-          const mainDiv = document.querySelector('main > div > div > div')
-            ?.children[1].children[0].children[2];
+          const getMainDivAndScroll = (selector: string) => {
+            let mainDiv =
+              selector === 'article > div'
+                ? document
+                    .querySelector(selector)
+                    ?.children[1]?.children[0].children[1].children[2].querySelector(
+                      'ul'
+                    )
+                : document.querySelector(selector)?.children[1].children[0]
+                    .children[2];
+            if (!mainDiv) return null;
 
-          const hiddenCommentsSpan = Array.from(
-            document.querySelectorAll('span')
-          ).find(
-            (span) =>
-              span.textContent === 'View hidden comments' ||
-              span.textContent === 'Ver comentarios ocultos'
-          );
+            const hiddenCommentsSpan = Array.from(
+              document.querySelectorAll('span')
+            ).find(
+              (span) =>
+                span.textContent === 'View hidden comments' ||
+                span.textContent === 'Ver comentarios ocultos'
+            );
 
-          if (hiddenCommentsSpan) {
-            mainDiv?.scrollBy(0, -1000);
-            return false;
+            if (hiddenCommentsSpan) {
+              mainDiv.scrollBy(0, -1000);
+              return {
+                newScrollTop: mainDiv.scrollTop,
+                hiddenCommentsSpanExists: true,
+                currentScrollTop: mainDiv.scrollTop,
+              };
+            }
+
+            const currentScrollTop = mainDiv.scrollTop;
+            mainDiv.scrollBy(0, 10000);
+
+            return {
+              newScrollTop: mainDiv.scrollTop,
+              hiddenCommentsSpanExists: !!hiddenCommentsSpan,
+              currentScrollTop,
+            };
+          };
+
+          // Intenta con la primera estructura
+          let scrollResult = getMainDivAndScroll('article > div');
+
+          // Si no se encuentra, intenta con la segunda estructura
+          if (!scrollResult) {
+            scrollResult = getMainDivAndScroll('main > div > div > div');
           }
 
-          const currentScrollTop = mainDiv?.scrollTop;
-          mainDiv?.scrollBy(0, 10000);
-
-          // Devuelve el valor actual de scrollTop y si se encontró el span de comentarios ocultos
-          return {
-            newScrollTop: mainDiv?.scrollTop,
-            hiddenCommentsSpanExists: !!hiddenCommentsSpan,
-            currentScrollTop,
-          };
+          return scrollResult;
         })) as any;
 
         const { newScrollTop, hiddenCommentsSpanExists, currentScrollTop } =
@@ -223,7 +211,7 @@ export const getInstagramPostData = async (
 
         // Verifica si el scroll ha cambiado
         if (newScrollTop === currentScrollTop || hiddenCommentsSpanExists) {
-          canScroll = false;
+          canScroll = false; // Detener el scroll si la posición no cambia o se encuentra el span
         }
 
         await page.waitForTimeout(randomTimeout(2000, 5000)); // Ajusta esto según tu necesidad
@@ -231,62 +219,8 @@ export const getInstagramPostData = async (
     };
 
     await scrollUntilEnd();
-    const commentsDivs: any[] = await page
-      .evaluate(() => {
-        const checkLikes = /(\d+)\s*(likes?|me\s+gustas?)/i;
-        const deleteTags = /<[^>]*>/g;
-        const mainDiv = document.querySelector('main > div > div > div');
-        const ownerCommentsContainer =
-          mainDiv?.children[1]?.children[0]?.children[2]?.children[0]
-            ?.children[1];
 
-        if (ownerCommentsContainer) {
-          const allComments = Array.from(ownerCommentsContainer.children);
-
-          let allCom = allComments.map((commentElement) => {
-            const ownerElement = commentElement.querySelector('span a span');
-            const owner = ownerElement ? ownerElement.innerHTML.trim() : '';
-            if (commentElement.children[1]) {
-              const span = commentElement.children[1].querySelector('span');
-              if (span) span.click();
-            }
-            const commentText =
-              commentElement?.children[0]?.children[0]?.children[1]?.children[0]
-                ?.children[0]?.children[0]?.children[1]?.children[0]?.innerHTML;
-            const finalComment = commentText ? commentText.trim() : '';
-            const likesOfComment =
-              commentElement?.children[0]?.children[0]?.children[1]?.children[0]?.children[1].querySelector(
-                'span'
-              )?.innerHTML as string;
-            const match = checkLikes.exec(likesOfComment);
-            let likesNumber = 0;
-            if (match) {
-              likesNumber = parseInt(match[1], 10);
-            }
-
-            const dateOfComment =
-              commentElement?.children[0]
-                ?.querySelector('time')
-                ?.getAttribute('datetime') || null;
-            return {
-              owner,
-              finalComment: finalComment.replace(deleteTags, ''),
-              likesNumber,
-              commentDate: dateOfComment,
-            };
-          });
-
-          allCom = allCom.filter((comment) => comment.owner !== '');
-          return allCom;
-        }
-
-        return [];
-      })
-      .catch((err) => {
-        console.error(`Error extracting comments: ${err.message}`);
-        return [];
-      });
-
+    const commentsDivs = (await extractComments(page)) as any;
     try {
       await page.waitForSelector('ul div', { timeout: 5000 });
     } catch (e) {
@@ -304,65 +238,98 @@ export const getInstagramPostData = async (
       };
     }
 
-    const responseComments = await page
-      .evaluate(() => {
-        const deleteTags = /<[^>]*>/g;
-        const mainDiv = document.querySelector('main > div > div > div');
-        const ownerCommentsContainer =
-          mainDiv?.children[1]?.children[0]?.children[2]?.children[0]
-            ?.children[1];
+    const responseComments = await page.evaluate(() => {
+      const deleteTags = /<[^>]*>/g;
+      const ownerCommentsContainer1 = document
+        .querySelector('article > div')
+        ?.children[1]?.children[0]?.children[1]?.children[2]?.querySelector(
+          'ul'
+        )?.children[2];
 
-        if (ownerCommentsContainer) {
-          const allComments = Array.from(ownerCommentsContainer.children);
+      const ownerCommentsContainer2 = document.querySelector(
+        'main > div > div > div'
+      )?.children[1]?.children[0]?.children[2]?.children[0]?.children[1];
+      const extractComments = (ownerCommentsContainer: any) => {
+        if (!ownerCommentsContainer) return null;
+        const allComments = Array.from(ownerCommentsContainer.children);
 
-          let answerComments: any = allComments.map((commentElement: any) => {
-            const ownerElement = commentElement.querySelector('span a span');
+        return allComments
+          .flatMap((commentElement: any) => {
+            const ownerElement =
+              commentElement.querySelector('span a') ||
+              commentElement.querySelector('span a span');
             const owner = ownerElement ? ownerElement.innerHTML.trim() : '';
+
             if (commentElement.children[1] !== undefined) {
               const uls = commentElement.children[1].querySelector('ul');
               const arrUls = Array.from(uls?.children || []);
-              const commentText = arrUls.map((div: any) => {
+
+              return arrUls.map((div: any) => {
                 const ownerComment =
+                  div.querySelector('h3')?.innerHTML ||
                   div.children[0].children[1].children[0].children[0].children[0].children[0].querySelector(
                     'span a span'
                   )?.innerHTML;
                 const finalOwner = ownerComment ? ownerComment.trim() : '';
+
                 const text =
+                  div.querySelector('span')?.innerHTML ||
                   div.children[0].children[1].children[0].children[0]
-                    .children[0].children[1].innerHTML || '';
-                const dateOfComment = commentElement.children[1]
+                    .children[0].children[1]?.innerHTML ||
+                  '';
+
+                const dateOfComment = commentElement
                   .querySelector('time')
-                  .getAttribute('datetime');
+                  ?.getAttribute('datetime');
                 return {
-                  originalOwnerOfCommet: owner,
+                  originalOwnerOfComment: owner.replace(deleteTags, ''),
                   owner: finalOwner,
                   finalComment: text.replace(deleteTags, '') || '',
                   commentDate: dateOfComment,
                 };
               });
-              return commentText;
             }
-          });
-          answerComments = answerComments.flat();
-          answerComments = answerComments.filter(
-            (comment: any) => comment !== undefined
-          );
-          return answerComments;
-        }
-      })
-      .catch((err) => {
-        console.error(`Error extracting response comments: ${err.message}`);
-        return [];
-      });
+
+            let answerCommentComponent =
+              commentElement.children[0]?.children[0]?.children[0]?.children[1]
+                ?.children[0]?.children[1]?.children[0];
+            let answerOwnerComment =
+              answerCommentComponent?.querySelector('h3')?.innerHTML;
+            let answerTextComment =
+              answerCommentComponent?.children[0]?.children[0]?.children[1]
+                ?.children[1]?.children[0]?.innerHTML;
+
+            const commentDate = commentElement
+              .querySelector('time')
+              ?.getAttribute('datetime');
+
+            return {
+              originalOwnerOfComment: owner,
+              owner: answerOwnerComment
+                ? answerOwnerComment.replace(deleteTags, '')
+                : '',
+              finalComment: answerTextComment
+                ? answerTextComment.replace(deleteTags, '')
+                : '',
+              commentDate: commentDate,
+            };
+          })
+          .filter((comment) => comment !== undefined);
+      };
+      return (
+        extractComments(ownerCommentsContainer1) ||
+        extractComments(ownerCommentsContainer2) ||
+        []
+      );
+    });
 
     await page.waitForTimeout(randomTimeout(5000, 10000)); // Ajusta esto según tu necesidad
 
     const { title, datePost, imgElements, likes, videoElements } = data as any;
 
-    commentsDivs.forEach((item) => {
+    commentsDivs.forEach((item: any) => {
       item.responses = responseComments.filter(
-        (response: { originalOwnerOfCommet: any }) =>
-          response.originalOwnerOfCommet === item.owner
+        (response) => response.originalOwnerOfComment === item.owner
       );
     });
 

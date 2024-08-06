@@ -19,7 +19,7 @@ export class InstagramScrapperService {
   }
 
   async processData(data: any, account: AccountEntity) {
-    // // Extraer las propiedades necesarias de 'data'
+    // Extraer las propiedades necesarias de 'data'
     const { links, followers, following, posts, profileImg } = data;
     // // Crear un nuevo usuario
     const newUser = await this.userRepository.createUserOrUpdate({
@@ -36,8 +36,9 @@ export class InstagramScrapperService {
     }
     const wait = (ms: number) =>
       new Promise((resolve) => setTimeout(resolve, ms));
-    let linksOfPostFinals = links.length > 30 ? links.slice(0, 30) : links;
-    // // Procesar cada enlace de Instagram
+    let linksOfPostFinals = links.length > 20 ? links.slice(0, 20) : links;
+
+    // Procesar cada enlace de Instagram
     for (const link of linksOfPostFinals) {
       await wait(60000);
       try {
@@ -90,6 +91,7 @@ export class InstagramScrapperService {
         console.error(`Error processing post from link ${link}:`, error);
       }
     }
+    console.log('A esperar 4 horas para la proxima cuenta');
     await wait(4 * 60 * 60 * 1000); // 4 hours in milliseconds
   }
   async getAllAccounts() {
