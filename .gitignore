@@ -2,8 +2,9 @@
 node_modules
 instagram-session.json
 postgres
-sessionCookies.json
+sessionCookies*.json
 dist
 build
 seed.json
 proxies.json
+userInstagram.json
