@@ -27,8 +27,8 @@ const main = async () => {
       if (match) {
         const username = match[1];
         const user = await getRandomUser();
-        console.log('User=========>', user);
         const data = await getInstagramPosts(username, user);
+        console.log(data);
         await instagramService.processData(data, account as any, user);
       } else {
         console.error(

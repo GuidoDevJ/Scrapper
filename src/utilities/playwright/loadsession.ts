@@ -190,13 +190,8 @@ export async function loadSession(context: any, user: any) {
 
 // Función para iniciar sesión
 export const loginInstagram = async (user: any) => {
-  const browser = await chromium.launch({
-    headless: false,
-  });
-  const userAgent = getRandomUserAgent();
-  const context = await browser.newContext({
-    userAgent: userAgent,
-  });
+  const browser = await chromium.launch();
+  const context = await browser.newContext();
   const page = await context.newPage();
 
   console.log('Iniciando sesión con ==>', user.instagramUsername);
