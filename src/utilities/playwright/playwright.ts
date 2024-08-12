@@ -1,20 +1,16 @@
 import { chromium } from 'playwright';
 import { AllData, InstagramPostDetails } from '../../types/types';
 import { getRandomProxy } from '../proxyHelper';
-import { loadSessionAndLogin } from './loadsession';
+import {
+  loadSession,
+  loadSessionAndLogin,
+  loginInstagram,
+} from './loadsession';
 import { getPostLinks, getProfileData } from './dataInfo';
 import { randomTimeout, retryOperation } from '../optimization';
 import { extractComments } from '../scrapCommentsPost';
 import { scrapeData } from '../scrapPostData';
-const userAgents = [
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-];
-
-const getRandomUserAgent = () => {
-  return userAgents[Math.floor(Math.random() * userAgents.length)];
-};
+import { getRandomUserAgent } from '../randomUsersAgents';
 
 const handle429 = async () => {
   const delay = randomTimeout(60000, 120000); // Espera entre 1 y 2 minutos
@@ -23,14 +19,15 @@ const handle429 = async () => {
   );
   await new Promise((resolve) => setTimeout(resolve, delay));
 };
-export const getInstagramPosts = async (username: string): Promise<AllData> => {
-  const browser = await chromium.launch({
-    // headless: false,
-  });
+export const getInstagramPosts = async (
+  username: string,
+  user: object
+): Promise<AllData> => {
+  const browser = await chromium.launch();
   let context = await browser.newContext();
   const page = await context.newPage();
 
-  await loadSessionAndLogin(page);
+  await loadSessionAndLogin(page, user);
 
   let allData: AllData = {
     posts: 0,
@@ -89,11 +86,12 @@ export const getInstagramPosts = async (username: string): Promise<AllData> => {
 };
 
 export const getInstagramPostData = async (
-  url: string
+  url: string,
+  user: any
 ): Promise<InstagramPostDetails> => {
   const { server, username: proxyUsername, password } = getRandomProxy() as any;
   const browser = await chromium.launch({
-    // headless: false,
+    headless: false,
     proxy: {
       server,
       username: proxyUsername,
@@ -101,12 +99,16 @@ export const getInstagramPostData = async (
     },
   });
   const userAgent = getRandomUserAgent();
-  console.log(`User-Agent: ${userAgent}`);
+
   let context = await browser.newContext({
     userAgent: userAgent,
   });
+
   const page = await context.newPage();
-  await loadSessionAndLogin(page);
+
+  const cookies = await loadSession(context, user);
+  if (!cookies) await loginInstagram(user);
+  // Añadir scripts de preload después de que la página se haya cargado
 
   // Capturar los mensajes de console.log de la página
   page.on('console', (msg) => console.log(msg.text()));
@@ -115,8 +117,7 @@ export const getInstagramPostData = async (
     await retryOperation(page, () =>
       page.goto(url, { timeout: 100000, waitUntil: 'networkidle' })
     );
-
-    await page.waitForSelector('main');
+    await retryOperation(page, () => page.waitForSelector('main'));
     // // Obtener y verificar el User-Agent
     // const userAgent = await page.evaluate(() => navigator.userAgent);
     // console.log(`User-Agent utilizado: ${userAgent}`);
@@ -214,7 +215,7 @@ export const getInstagramPostData = async (
           canScroll = false; // Detener el scroll si la posición no cambia o se encuentra el span
         }
 
-        await page.waitForTimeout(randomTimeout(2000, 5000)); // Ajusta esto según tu necesidad
+        await page.waitForTimeout(randomTimeout(2000, 8000)); // Ajusta esto según tu necesidad
       }
     };
 
@@ -237,7 +238,7 @@ export const getInstagramPostData = async (
         likes,
       };
     }
-
+    console.log('soy los comments', commentsDivs);
     const responseComments = await page.evaluate(() => {
       const deleteTags = /<[^>]*>/g;
       const ownerCommentsContainer1 = document

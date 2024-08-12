@@ -1,6 +1,7 @@
 import { AppDataSource } from './db/index';
 import { InstagramScrapperService } from './services/InstagramService';
 import { fetchProxies } from './utilities/fetchProxies';
+import { getRandomUser } from './utilities/playwright/loadsession';
 import { getInstagramPosts } from './utilities/playwright/playwright';
 const pattern = /instagram\.com\/([A-Za-z0-9._]+)/;
 
@@ -16,6 +17,7 @@ const main = async () => {
     const accounts = await instagramService.getAllAccounts();
 
     // // Verifica si hay cuentas para procesar
+
     if (accounts.length === 0) {
       await AppDataSource.destroy();
     }
@@ -24,8 +26,10 @@ const main = async () => {
       const match = account.accountURL.match(pattern);
       if (match) {
         const username = match[1];
-        const data = await getInstagramPosts(username);
-        await instagramService.processData(data, account);
+        const user = await getRandomUser();
+        console.log('User=========>', user);
+        const data = await getInstagramPosts(username, user);
+        await instagramService.processData(data, account as any, user);
       } else {
         console.error(
           `No se pudo extraer el nombre de usuario de la URL: ${account.accountURL}`

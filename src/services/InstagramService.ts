@@ -5,6 +5,8 @@ import { getInstagramPostData } from '../utilities/playwright/playwright';
 import { getTime } from '../utilities/getTime';
 import { AccountRepository } from '../repositories/Account';
 import { AccountEntity } from '../entities/Account';
+import { getRandomMilliseconds } from '../utilities/getMiliseconds';
+import { deleteSession } from '../utilities/playwright/loadsession';
 
 export class InstagramScrapperService {
   private userRepository: UserRepository;
@@ -18,7 +20,7 @@ export class InstagramScrapperService {
     this.accountRepository = new AccountRepository();
   }
 
-  async processData(data: any, account: AccountEntity) {
+  async processData(data: any, account: AccountEntity, user: any) {
     // Extraer las propiedades necesarias de 'data'
     const { links, followers, following, posts, profileImg } = data;
     // // Crear un nuevo usuario
@@ -36,15 +38,17 @@ export class InstagramScrapperService {
     }
     const wait = (ms: number) =>
       new Promise((resolve) => setTimeout(resolve, ms));
-    let linksOfPostFinals = links.length > 20 ? links.slice(0, 20) : links;
+    let linksOfPostFinals = links.length > 15 ? links.slice(0, 15) : links;
 
     // Procesar cada enlace de Instagram
     for (const link of linksOfPostFinals) {
-      await wait(60000);
+      console.log('Esperando ......');
+      await wait(180000);
       try {
         // Obtener datos detallados de la publicación de Instagram
-        const { allCom, ...postData } = await getInstagramPostData(link);
+        const { allCom, ...postData } = await getInstagramPostData(link, user);
         const { title, likes, datePost, numberOfComments } = postData;
+        console.log('Commets', allCom);
         // Crear una nueva publicación en Instagram
         const post = await this.instagramPostRepository.createPost({
           media: [...postData.imgElements, ...postData.videoElements],
@@ -61,7 +65,6 @@ export class InstagramScrapperService {
           // Crear un nuevo comentario
           const { finalComment, owner, commentDate, likesNumber, responses } =
             comment;
-          console.log(finalComment, owner, commentDate, likesNumber, responses);
           const savedComment =
             await this.commentRepository.createCommentOrUpdate({
               comment: finalComment,
@@ -91,8 +94,8 @@ export class InstagramScrapperService {
         console.error(`Error processing post from link ${link}:`, error);
       }
     }
-    console.log('A esperar 4 horas para la proxima cuenta');
-    await wait(4 * 60 * 60 * 1000); // 4 hours in milliseconds
+    await wait(getRandomMilliseconds());
+    // await deleteSession(user);
   }
   async getAllAccounts() {
     return await this.accountRepository.getAccounts();
