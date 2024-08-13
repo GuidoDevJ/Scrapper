@@ -3,13 +3,14 @@ services:
   app:
     image: scrap
     environment:
-      DB_HOST: localhost
-      DB_PORT: 5432
-      POSTGRES_USER: guidouser
-      POSTGRES_PASSWORD: S3cret
+      DB_HOST: 190.57.233.212
+      DB_PORT: 1015
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mcc2023
       POSTGRES_DB: postgres
       INSTAGRAM_USERNAME: 3794143341
       INSTAGRAM_PASSWORD: Mama154595757
+      PROXY_URL: 'https://proxy.webshare.io/api/v2/proxy/list/download/pvvrtbsjgrmzcyeisioxziqqlwvpxwarjiipshqs/-/any/username/direct/-/'
     # depends_on:
     #   - postgres
     ports:

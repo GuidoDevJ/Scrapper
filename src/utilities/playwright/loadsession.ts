@@ -189,11 +189,7 @@ export async function loadSession(context: any, user: any) {
 }
 
 // Función para iniciar sesión
-export const loginInstagram = async (user: any) => {
-  const browser = await chromium.launch();
-  const context = await browser.newContext();
-  const page = await context.newPage();
-
+export const loginInstagram = async (page: Page, user: any) => {
   console.log('Iniciando sesión con ==>', user.instagramUsername);
 
   try {
@@ -205,9 +201,9 @@ export const loginInstagram = async (user: any) => {
     await page.fill('input[name="username"]', user.instagramUsername || '');
     await page.fill('input[name="password"]', user.instagramPassword || '');
     await page.click('button[type="submit"]');
-    await page.waitForTimeout(80000); // Ajusta esto según tu necesidad
+    await page.waitForTimeout(8000); // Ajusta esto según tu necesidad
     await saveSession(page.context(), user);
-    await browser.close();
+
     console.log('Inicio de sesión exitoso.');
   } catch (error) {
     console.error('Error al iniciar sesión:', error);
@@ -223,7 +219,7 @@ export const loadSessionAndLogin = async (page: Page, user: any) => {
     await page.goto('https://www.instagram.com', { waitUntil: 'networkidle' });
 
     if (!cookies) {
-      await loginInstagram(user);
+      await loginInstagram(page, user);
     } else {
       console.log(
         `Sesión cargada exitosamente para ${user.instagramUsername}, no es necesario iniciar sesión.`

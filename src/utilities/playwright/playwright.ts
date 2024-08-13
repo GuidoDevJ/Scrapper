@@ -23,7 +23,9 @@ export const getInstagramPosts = async (
   username: string,
   user: object
 ): Promise<AllData> => {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({
+    // headless: false,
+  });
   let context = await browser.newContext();
   const page = await context.newPage();
 
@@ -107,7 +109,7 @@ export const getInstagramPostData = async (
   const page = await context.newPage();
 
   const cookies = await loadSession(context, user);
-  if (!cookies) await loginInstagram(user);
+  if (!cookies) await loginInstagram(page, user);
   // Añadir scripts de preload después de que la página se haya cargado
 
   // Capturar los mensajes de console.log de la página

@@ -18,4 +18,4 @@ ENV PM2_SECRET_KEY l40xw63ilgzfmx0
 
 RUN npm run build
 
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start:dev"]
