@@ -7,7 +7,9 @@ import { AccountRepository } from '../repositories/Account';
 import { AccountEntity } from '../entities/Account';
 import { getRandomMilliseconds } from '../utilities/getMiliseconds';
 import { deleteSession } from '../utilities/playwright/loadsession';
+import { InstagramUserAccount } from '../entities/InstagramUserAccount';
 
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export class InstagramScrapperService {
   private userRepository: UserRepository;
   private instagramPostRepository: InstagramPostRepository;
@@ -20,24 +22,12 @@ export class InstagramScrapperService {
     this.accountRepository = new AccountRepository();
   }
 
-  async processData(data: any, account: AccountEntity, user: any) {
+  async processLinks(
+    links: string[],
+    userEntity: InstagramUserAccount,
+    user: object
+  ) {
     // Extraer las propiedades necesarias de 'data'
-    const { links, followers, following, posts, profileImg } = data;
-    // // Crear un nuevo usuario
-    const newUser = await this.userRepository.createUserOrUpdate({
-      followers,
-      following,
-      numberOfPosts: posts,
-      profilePictureUrl: profileImg,
-      username: account.accountURL,
-      account: account,
-      scrapDate: getTime(),
-    });
-    if (posts === 0) {
-      return newUser;
-    }
-    const wait = (ms: number) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
     let linksOfPostFinals = links.length > 15 ? links.slice(0, 15) : links;
 
     // Procesar cada enlace de Instagram
@@ -56,13 +46,13 @@ export class InstagramScrapperService {
           numberOfLikes: +likes,
           numberOfComments: +numberOfComments,
           postDate: datePost,
-          account: newUser,
+          account: userEntity,
           scrapDate: getTime(),
         });
 
         // Procesar cada comentario de la publicación
         for (const comment of allCom) {
-          // Crear un nuevo comentario
+        // Crear un nuevo comentario
           const { finalComment, owner, commentDate, likesNumber, responses } =
             comment;
           const savedComment =
@@ -97,8 +87,32 @@ export class InstagramScrapperService {
     await wait(getRandomMilliseconds());
     // await deleteSession(user);
   }
+  async processPosts(data: any, account: AccountEntity, user: any) {
+    // Extraer las propiedades necesarias de 'data'
+    const { links, followers, following, posts, profileImg } = data;
+    // Crear un nuevo usuario
+    const newUser = await this.userRepository.createUserOrUpdate({
+      followers,
+      following,
+      numberOfPosts: posts,
+      profilePictureUrl: profileImg,
+      username: account.accountURL,
+      account: account,
+      linksPosts: links,
+      scrapDate: getTime(),
+    });
+    if (posts === 0) {
+      return newUser;
+    }
+
+    await wait(getRandomMilliseconds());
+    // await deleteSession(user);
+  }
   async getAllAccounts() {
     return await this.accountRepository.getAccounts();
+  }
+  async getAllPosts() {
+    return await this.userRepository.getLinksOfPosts();
   }
   async seedAccountData(account: AccountEntity) {
     try {

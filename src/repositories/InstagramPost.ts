@@ -46,4 +46,7 @@ export class InstagramPostRepository {
       },
     });
   }
+  async getAllPosts() {
+    return await this.instagramPostRepository.find();
+  }
 }

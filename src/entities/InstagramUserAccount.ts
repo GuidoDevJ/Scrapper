@@ -29,6 +29,9 @@ export class InstagramUserAccount {
   @Column()
   following: number;
 
+  @Column('text', { array: true, nullable: true })
+  linksPosts: string[];
+
   @Column({ nullable: true })
   profilePictureUrl: string;
 

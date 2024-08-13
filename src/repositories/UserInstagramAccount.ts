@@ -31,4 +31,7 @@ export class UserRepository {
   private async createUser(user: InstagramUserAccount) {
     return await this.repository.save(user);
   }
+  async getLinksOfPosts() {
+    return await this.repository.find();
+  }
 }
