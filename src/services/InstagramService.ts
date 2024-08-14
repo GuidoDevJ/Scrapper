@@ -52,7 +52,7 @@ export class InstagramScrapperService {
 
         // Procesar cada comentario de la publicación
         for (const comment of allCom) {
-        // Crear un nuevo comentario
+          // Crear un nuevo comentario
           const { finalComment, owner, commentDate, likesNumber, responses } =
             comment;
           const savedComment =
@@ -105,7 +105,8 @@ export class InstagramScrapperService {
       return newUser;
     }
 
-    await wait(getRandomMilliseconds());
+    console.log('Esperando 5 minutos');
+    await wait(300000);
     // await deleteSession(user);
   }
   async getAllAccounts() {
