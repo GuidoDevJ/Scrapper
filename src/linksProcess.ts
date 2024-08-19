@@ -7,7 +7,7 @@ const main = async () => {
   try {
     // Inicializa la base de datos
     await AppDataSource.initialize();
-    await fetchProxies();
+    // await fetchProxies();
     // Crea una instancia del servicio de Instagram
     const instagramService = new InstagramScrapperService();
 
@@ -23,6 +23,7 @@ const main = async () => {
       const links = account.linksPosts;
       await instagramService.processLinks(links, account, user);
     }
+    console.log('finish');
   } catch (error: any) {
     console.error(`Error: ${error.message}`);
     console.error(`Stack trace: ${error.stack}`);

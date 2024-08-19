@@ -28,7 +28,6 @@ export const getRandomProxy = () => {
     // Separar los detalles del proxy
     const [server, port, username, password] = proxy.split(':');
     const protocol = 'http'; // Asumiendo que el protocolo es HTTP; ajusta según tus necesidades
-
     return { server: `${server}:${port}`, username, password, protocol };
   } catch (error: any) {
     // Manejo de errores

@@ -1,15 +1,18 @@
 import { UserRepository } from '../repositories/UserInstagramAccount';
 import { InstagramPostRepository } from '../repositories/InstagramPost';
 import { CommentRepository } from '../repositories/CommentPosts';
-import { getInstagramPostData } from '../utilities/playwright/playwright';
+import {
+  getBrowserAndPage,
+  getInstagramPostData,
+} from '../utilities/playwright/playwright';
 import { getTime } from '../utilities/getTime';
 import { AccountRepository } from '../repositories/Account';
 import { AccountEntity } from '../entities/Account';
 import { getRandomMilliseconds } from '../utilities/getMiliseconds';
 import { deleteSession } from '../utilities/playwright/loadsession';
 import { InstagramUserAccount } from '../entities/InstagramUserAccount';
+import { wait } from '../utilities/randomDelay';
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export class InstagramScrapperService {
   private userRepository: UserRepository;
   private instagramPostRepository: InstagramPostRepository;
@@ -29,19 +32,28 @@ export class InstagramScrapperService {
   ) {
     // Extraer las propiedades necesarias de 'data'
     let linksOfPostFinals = links.length > 15 ? links.slice(0, 15) : links;
-
-    // Procesar cada enlace de Instagram
-    for (const link of linksOfPostFinals) {
-      console.log('Esperando ......');
-      await wait(180000);
+    const { browser, page } = await getBrowserAndPage(user);
+    const allData = await getInstagramPostData(
+      linksOfPostFinals,
+      browser,
+      page
+    );
+    for (const data of allData) {
+      const {
+        allCom,
+        title,
+        likes,
+        datePost,
+        numberOfComments,
+        imgElements,
+        videoElements,
+      } = data;
       try {
         // Obtener datos detallados de la publicación de Instagram
-        const { allCom, ...postData } = await getInstagramPostData(link, user);
-        const { title, likes, datePost, numberOfComments } = postData;
         console.log('Commets', allCom);
         // Crear una nueva publicación en Instagram
         const post = await this.instagramPostRepository.createPost({
-          media: [...postData.imgElements, ...postData.videoElements],
+          media: [imgElements, videoElements],
           title: title,
           numberOfLikes: +likes,
           numberOfComments: +numberOfComments,
@@ -81,11 +93,10 @@ export class InstagramScrapperService {
           }
         }
       } catch (error) {
-        console.error(`Error processing post from link ${link}:`, error);
+        console.error(`Error processing post from data ${data}:`, error);
       }
     }
     await wait(getRandomMilliseconds());
-    // await deleteSession(user);
   }
   async processPosts(data: any, account: AccountEntity, user: any) {
     // Extraer las propiedades necesarias de 'data'
