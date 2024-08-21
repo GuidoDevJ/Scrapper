@@ -26,8 +26,7 @@ const mainProcessAccounts = async () => {
         const username = match[1];
         const user = await getRandomUser();
         console.log(`Account ${account}`, user);
-        const data = await getInstagramPosts(username, user);
-        await instagramService.processPosts(data, account as any, user);
+        await instagramService.processPosts(username, account as any, user);
       } else {
         console.error(
           `No se pudo extraer el nombre de usuario de la URL: ${account.accountURL}`

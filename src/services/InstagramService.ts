@@ -4,6 +4,7 @@ import { CommentRepository } from '../repositories/CommentPosts';
 import {
   getBrowserAndPage,
   getInstagramPostData,
+  getInstagramPosts,
 } from '../utilities/playwright/playwright';
 import { getTime } from '../utilities/getTime';
 import { AccountRepository } from '../repositories/Account';
@@ -98,7 +99,10 @@ export class InstagramScrapperService {
     }
     await wait(getRandomMilliseconds());
   }
-  async processPosts(data: any, account: AccountEntity, user: any) {
+  async processPosts(username: any, account: AccountEntity, user: any) {
+    const { browser, page } = await getBrowserAndPage(user);
+    const data = await getInstagramPosts(browser, page, username, user);
+
     // Extraer las propiedades necesarias de 'data'
     const { links, followers, following, posts, profileImg } = data;
     // Crear un nuevo usuario
@@ -115,10 +119,7 @@ export class InstagramScrapperService {
     if (posts === 0) {
       return newUser;
     }
-
-    console.log('Esperando 5 minutos');
-    await wait(300000);
-    // await deleteSession(user);
+    await wait(getRandomMilliseconds());
   }
   async getAllAccounts() {
     return await this.accountRepository.getAccounts();

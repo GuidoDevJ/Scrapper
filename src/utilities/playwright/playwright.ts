@@ -1,7 +1,7 @@
 import { Browser, chromium, Page } from 'playwright';
 import { AllData, InstagramPostDetails } from '../../types/types';
 import { getRandomProxy } from '../proxyHelper';
-import { loadSessionAndLogin } from './loadsession';
+import { loadSessionAndLogin, loginInstagram } from './loadsession';
 import { getPostLinks, getProfileData } from './dataInfo';
 import { randomTimeout, retryOperation } from '../optimization';
 import { extractComments } from '../scrapCommentsPost';
@@ -16,17 +16,11 @@ const handle429 = async () => {
   await new Promise((resolve) => setTimeout(resolve, delay));
 };
 export const getInstagramPosts = async (
+  browser: Browser,
+  page: Page,
   username: string,
-  user: object
+  user: any
 ): Promise<AllData> => {
-  const browser = await chromium.launch({
-    // headless: false,
-  });
-  let context = await browser.newContext();
-  const page = await context.newPage();
-
-  await loadSessionAndLogin(page, user);
-
   let allData: AllData = {
     posts: 0,
     followers: 0,
@@ -84,9 +78,10 @@ export const getInstagramPosts = async (
 };
 
 export const getBrowserAndPage = async (user: any) => {
-  const { server, username: proxyUsername, password } = getRandomProxy() as any;
+  // const { server, username: proxyUsername, password } = getRandomProxy() as any;
+
   const browser = await chromium.launch({
-    headless: false,
+    // headless: false,
     // proxy: {
     //   server,
     //   username: proxyUsername,
@@ -94,10 +89,8 @@ export const getBrowserAndPage = async (user: any) => {
     // },
   });
   let context = await browser.newContext();
-
   const page = await context.newPage();
-
-  await loadSessionAndLogin(page, user);
+  await loginInstagram(page, user, context);
   // Capturar los mensajes de console.log de la página
   page.on('console', (msg) => console.log(msg.text()));
   return {
