@@ -25,7 +25,7 @@ const mainProcessAccounts = async () => {
       if (match) {
         const username = match[1];
         const user = await getRandomUser();
-        console.log(`Account ${account}`, user);
+        console.log(`Account ${account.accountURL} `, user);
         await instagramService.processPosts(username, account as any, user);
       } else {
         console.error(

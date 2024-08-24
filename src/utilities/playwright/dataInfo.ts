@@ -8,14 +8,17 @@ export const getProfileData = async (page: Page) => {
     const spans: any[] = [];
 
     liElements.forEach((list) => {
-      const number = list.querySelector('span');
-      spans.push(number?.querySelector('span')?.innerHTML as any);
+      const spanElement = list.querySelector('span');
+      const number =
+        spanElement?.getAttribute('title') ||
+        spanElement?.querySelector('span')?.innerHTML;
+      spans.push(number);
     });
     return {
       profileImg: profileImg.src,
-      following: parseInt(spans[2].replace(/,/g, '.')),
-      followers: parseInt(spans[1].replace(/,/g, '.')),
-      posts: parseInt(spans[0].replace(/,/g, '.')),
+      following: Number(spans[2].replace(/,/g, '')),
+      followers: Number(spans[1].replace(/,/g, '')),
+      posts: Number(spans[0].replace(/,/g, '')),
     };
   });
   return data;
