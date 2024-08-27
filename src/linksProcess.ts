@@ -1,22 +1,13 @@
 import { AppDataSource } from './db/index';
 import { InstagramScrapperService } from './services/InstagramService';
-import { fetchProxies } from './utilities/fetchProxies';
 import { getRandomUser } from './utilities/playwright/loadsession';
 
 const main = async () => {
   try {
     // Inicializa la base de datos
     await AppDataSource.initialize();
-    await fetchProxies();
     // Crea una instancia del servicio de Instagram
     const instagramService = new InstagramScrapperService();
-    function chunkArray(array: any[], size: number) {
-      const chunked = [];
-      for (let i = 0; i < array.length; i += size) {
-        chunked.push(array.slice(i, i + size));
-      }
-      return chunked;
-    }
     // Obtén todas las cuentas
     const accounts = await instagramService.getAllPosts();
     if (accounts.length === 0) {

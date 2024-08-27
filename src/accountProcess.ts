@@ -13,7 +13,7 @@ const mainProcessAccounts = async () => {
 
     // Obtén todas las cuentas
     const accounts = await instagramService.getAllAccounts();
-
+    console.log(accounts);
     // Verifica si hay cuentas para procesar
 
     if (accounts.length === 0) {

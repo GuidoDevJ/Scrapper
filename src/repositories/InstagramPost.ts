@@ -20,7 +20,7 @@ export class InstagramPostRepository {
     return await this.instagramPostRepository.save(instagramPost);
   }
   private async updatePost(post: InstagramPost) {
-    const { account, comments, media, numberOfLikes, scrapDate, title } = post;
+    const { account, comments, media, numberOfLikes, scrapDate, title,link } = post;
     // Find the post to update
     const postToUpdate = (await this.instagramPostRepository.findOneBy({
       account: account.id as any, // Aquí se filtra por el ID de la cuenta
@@ -28,6 +28,7 @@ export class InstagramPostRepository {
     })) as any;
     postToUpdate.comments = comments;
     postToUpdate.media = media;
+    postToUpdate.link = link;
     postToUpdate.numberOfLikes = numberOfLikes;
     postToUpdate.scrapDate = scrapDate;
     // Update the post's properties

@@ -41,6 +41,7 @@ export class InstagramScrapperService {
     );
     for (const data of allData) {
       const {
+        link,
         allCom,
         title,
         likes,
@@ -61,6 +62,7 @@ export class InstagramScrapperService {
           postDate: datePost,
           account: userEntity,
           scrapDate: getTime(),
+          link,
         });
 
         // Procesar cada comentario de la publicación

@@ -9,9 +9,6 @@ interface EnvVars {
   POSTGRES_USER: string;
   POSTGRES_PASSWORD: string;
   POSTGRES_DB: string;
-  INSTAGRAM_USERNAME: string;
-  INSTAGRAM_PASSWORD: string;
-  PROXY_URL: string;
 }
 
 const envsSchema = joi
@@ -21,9 +18,6 @@ const envsSchema = joi
     POSTGRES_USER: joi.string().required(),
     POSTGRES_PASSWORD: joi.string().required(),
     POSTGRES_DB: joi.string().required(),
-    INSTAGRAM_USERNAME: joi.string().required(),
-    INSTAGRAM_PASSWORD: joi.string().required(),
-    PROXY_URL: joi.string().required(),
   })
   .unknown(true);
 
@@ -41,7 +35,4 @@ export const envs = {
   dbUser: envVars.POSTGRES_USER,
   dbPassword: envVars.POSTGRES_PASSWORD,
   dbName: envVars.POSTGRES_DB,
-  instagramUsername: envVars.INSTAGRAM_USERNAME,
-  instagramPassword: envVars.INSTAGRAM_PASSWORD,
-  proxyUrl: envVars.PROXY_URL,
 };

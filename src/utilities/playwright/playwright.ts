@@ -108,7 +108,7 @@ export const getInstagramPostData = async (
 
   for (const link of urls) {
     try {
-      await wait(200000);
+      await wait(180000);
       // Intentar cargar la página
       await retryOperation(page, () =>
         page.goto(link, { timeout: 100000, waitUntil: 'networkidle' })
@@ -219,6 +219,7 @@ export const getInstagramPostData = async (
       } catch (e) {
         const { title, datePost, imgElements, likes, videoElements } = data;
         results.push({
+          link,
           title,
           allCom: commentsDivs,
           numberOfComments: commentsDivs.length,
@@ -332,6 +333,7 @@ export const getInstagramPostData = async (
       const { title, datePost, imgElements, likes, videoElements } = data;
 
       results.push({
+        link,
         title,
         allCom: commentsDivs,
         numberOfComments: commentsDivs.length,
