@@ -14,7 +14,7 @@ export class InstagramPost {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   link: string;
   @Column({ type: 'simple-array' })
   media: string[];
