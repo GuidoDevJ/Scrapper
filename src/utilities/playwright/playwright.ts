@@ -67,7 +67,7 @@ export const getInstagramPosts = async (
     }
 
     allData.links = Array.from(allLinks);
-    await page.waitForTimeout(randomTimeout(5000, 10000));
+    await page.waitForTimeout(randomTimeout(5000, 7000));
     await browser.close();
     return allData;
   } catch (error) {

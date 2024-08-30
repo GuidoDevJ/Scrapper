@@ -39,6 +39,6 @@ export class InstagramUserAccount {
   posts: InstagramPost[];
 
   @OneToOne(() => AccountEntity)
-  @JoinColumn() // Asegúrate de usar @JoinColumn para la relación OneToOne
+  @JoinColumn()
   account: AccountEntity;
 }
