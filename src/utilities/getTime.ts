@@ -1,5 +1,7 @@
 export const getTime = () => {
-  const time = Date.now();
-  const date = new Date(time);
-  return date.toUTCString();
+  const date = new Date();
+  const argTime = new Date(
+    date.toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' })
+  );
+  return argTime;
 };
