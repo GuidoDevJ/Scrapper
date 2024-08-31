@@ -13,17 +13,20 @@ import { getRandomMilliseconds } from '../utilities/getMiliseconds';
 import { deleteSession } from '../utilities/playwright/loadsession';
 import { InstagramUserAccount } from '../entities/InstagramUserAccount';
 import { wait } from '../utilities/randomDelay';
+import { HistoryRepository } from '../repositories/History';
 
 export class InstagramScrapperService {
   private userRepository: UserRepository;
   private instagramPostRepository: InstagramPostRepository;
   private commentRepository: CommentRepository;
   private accountRepository: AccountRepository;
+  private historyRepository: HistoryRepository;
   constructor() {
     this.userRepository = new UserRepository();
     this.instagramPostRepository = new InstagramPostRepository();
     this.commentRepository = new CommentRepository();
     this.accountRepository = new AccountRepository();
+    this.historyRepository = new HistoryRepository();
   }
 
   async processLinks(
@@ -101,7 +104,12 @@ export class InstagramScrapperService {
     }
     await wait(getRandomMilliseconds());
   }
-  async processPosts(username: any, account: AccountEntity, user: any) {
+  async processPosts(
+    username: any,
+    account: AccountEntity,
+    user: any,
+    onlyOne: boolean
+  ) {
     const { browser, page } = await getBrowserAndPage(user);
     const data = await getInstagramPosts(browser, page, username, user);
 
@@ -118,9 +126,18 @@ export class InstagramScrapperService {
       linksPosts: links,
       scrapDate: getTime(),
     });
+    await this.historyRepository.save({
+      account,
+      followers,
+      following,
+      userName: username,
+      numberOfPosts: posts,
+      scrapDate: getTime(),
+    });
     if (posts === 0) {
       return newUser;
     }
+    if (onlyOne) return;
     await wait(getRandomMilliseconds());
   }
   async getAllAccounts() {
