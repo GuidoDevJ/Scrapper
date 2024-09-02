@@ -185,7 +185,7 @@ export const loginInstagram = async (page: Page, user: any, context: any) => {
 
     // Guarda el estado de almacenamiento local y cookies en un archivo
     // await context.storageState({ path: 'instagram.json' });
-    await page.waitForTimeout(10000); // Ajusta esto según tu necesidad
+    await page.waitForTimeout(1000); // Ajusta esto según tu necesidad
     console.log('Inicio de sesión exitoso.');
   } catch (error) {
     console.error('Error al iniciar sesión:', error);

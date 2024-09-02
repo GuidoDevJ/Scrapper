@@ -81,7 +81,7 @@ export const getBrowserAndPage = async (user: any) => {
   // const { server, username: proxyUsername, password } = getRandomProxy() as any;
 
   const browser = await chromium.launch({
-    // headless: false,
+    headless: false,
     // proxy: {
     //   server,
     //   username: proxyUsername,
@@ -108,7 +108,7 @@ export const getInstagramPostData = async (
 
   for (const link of urls) {
     try {
-      await wait(180000);
+      await wait(90000);
       // Intentar cargar la página
       await retryOperation(page, () =>
         page.goto(link, { timeout: 100000, waitUntil: 'networkidle' })
