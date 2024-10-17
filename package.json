@@ -9,6 +9,7 @@
     "start": "pm2-runtime ecosystem.config.js --env production",
     "dev-links": "ts-node-dev src/linksProcess.ts",
     "dev-accounts": "ts-node-dev src/accountProcess.ts",
+    "dev-tiktok": "ts-node-dev src/tiktokProcess.ts",
     "start:dev-links": "node ./build/linksProcess.js",
     "start:dev-account": "node ./build/accountProcess.js",
     "seed": "ts-node-dev src/utilities/seed.ts"

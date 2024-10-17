@@ -1,12 +1,11 @@
 import { Browser, chromium, Page } from 'playwright';
-import { AllData, InstagramPostDetails } from '../../types/types';
-import { getRandomProxy } from '../proxyHelper';
-import { loadSessionAndLogin, loginInstagram } from './loadsession';
-import { getPostLinks, getProfileData } from './dataInfo';
+import { AllData } from '../../types/types';
 import { randomTimeout, retryOperation } from '../optimization';
+import { wait } from '../randomDelay';
 import { extractComments } from '../scrapCommentsPost';
 import { scrapeData } from '../scrapPostData';
-import { wait } from '../randomDelay';
+import { getPostLinks, getProfileData } from './dataInfo';
+import { loginInstagram } from './loadsession';
 
 const handle429 = async () => {
   const delay = randomTimeout(60000, 120000); // Espera entre 1 y 2 minutos
