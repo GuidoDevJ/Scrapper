@@ -8,5 +8,5 @@ build
 seed.json
 proxies.json
 userInstagram.json
-docker-compose.yml
+docker-compose*.yml
 sessionCookies*.json

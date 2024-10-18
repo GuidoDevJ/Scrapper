@@ -39,3 +39,15 @@ export const getPostLinks = async (page: Page) => {
     return linksArray.flat();
   });
 };
+
+export const getTiktoksLinks = async (page: Page) => {
+  const links = await page.evaluate(() => {
+    const linkElement = document.querySelector(
+      '[data-e2e="user-post-item-list"]'
+    );
+    console.log('LinkElement==>', linkElement);
+    const links = linkElement?.querySelectorAll('a') as any;
+    return Array.from(links).map((link: any) => link.href);
+  });
+  return links;
+};

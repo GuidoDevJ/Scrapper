@@ -87,7 +87,9 @@
 // };
 
 import * as fs from 'fs';
+import path from 'path';
 import { BrowserContext, Cookie, Page } from 'playwright';
+import { solveSlideCaptcha } from '../resolveCaptcha';
 
 const usersInstagram = './userInstagram.json';
 
@@ -211,5 +213,97 @@ export const loadSessionAndLogin = async (page: Page, user: any) => {
       'Error en el proceso de carga de sesión e inicio de sesión:',
       error
     );
+  }
+};
+
+export const loginTiktok = async (page: Page, browser: any, user: any) => {
+  const sessionPath = path.resolve('tiktok-session.json'); // Archivo donde se guarda la sesión
+
+  // Si ya existe el archivo de sesión, cargarlo
+  let context;
+  if (fs.existsSync(sessionPath)) {
+    console.log('Sesión encontrada, cargando sesión...');
+    context = await browser.newContext({ storageState: sessionPath });
+  } else {
+    console.log('No se encontró sesión, iniciando nuevo login...');
+    context = await browser.newContext();
+  }
+
+  // Navega a TikTok
+  await page.goto('https://www.tiktok.com/login');
+
+  // Si estamos en la página de login, entonces necesitamos iniciar sesión
+  if (page.url().includes('/login')) {
+    console.log('Página de login detectada, iniciando sesión...');
+    // Esperar que los campos de usuario y contraseña estén visibles
+    // await page.waitForSelector('input[placeholder="Email or username"]');
+    // Hacer click en el elemento que contiene el texto 'email'
+    await page.click('text=correo');
+    await page.click(
+      'text=Iniciar sesión con un correo electrónico o nombre de usuario'
+    );
+    // Completa los campos de login con tus credenciales
+    await page.fill(
+      'input[placeholder="Correo electrónico o nombre de usuario"]',
+      'guidogauna9@gmail.com'
+    ); // Reemplaza con tu usuario
+    await page.fill('input[placeholder="Contraseña"]', 'Mama*154595757'); // Reemplaza con tu contraseña
+
+    // Clic en el botón de iniciar sesión
+    await page.click('button:has-text("Iniciar sesión")');
+    await page.waitForTimeout(5000);
+    const captchaElement = await page.waitForSelector('canvas'); // Ajusta el selector según la página
+    console.log('CAPTCHA detectado');
+
+    // Capturar la imagen del CAPTCHA (puede ser un canvas o imagen, ajusta el selector)
+    const captchaImagePath = path.resolve(__dirname, 'captcha.png');
+    await captchaElement.screenshot({ path: captchaImagePath });
+
+    // Leer la imagen y convertirla a base64
+    const imageBase64 = fs.readFileSync(captchaImagePath, {
+      encoding: 'base64',
+    });
+
+    // Resolver el CAPTCHA usando 2Captcha
+    const captchaSolution = await solveSlideCaptcha(imageBase64);
+
+    // Aquí se implementaría la lógica para usar la solución del captcha en la página.
+    // Dependiendo del tipo de CAPTCHA, la solución puede requerir un click o un desplazamiento
+    // Simular el deslizamiento hacia la solución proporcionada
+
+    // Esto depende de cómo sea el captcha exacto y la respuesta que devuelve 2Captcha.
+    // Puedes simular el arrastre de la pieza usando Playwright
+    const slider = (await page.$('selector-del-slider')) as any; // Reemplaza con el selector del slider
+    const sliderBox = await slider.boundingBox();
+
+    // Mover el slider basándote en la solución del CAPTCHA
+    await page.mouse.move(
+      sliderBox.x + sliderBox.width / 2,
+      sliderBox.y + sliderBox.height / 2
+    );
+    await page.mouse.down();
+    await page.mouse.move(
+      sliderBox.x + parseInt(captchaSolution),
+      sliderBox.y + sliderBox.height / 2,
+      { steps: 10 }
+    );
+    await page.mouse.up();
+
+    console.log('CAPTCHA resuelto y verificado');
+    // Verificar si el login fue exitoso
+    if (page.url().includes('/login')) {
+      console.log(
+        'Error: Login fallido. Verifica tus credenciales o si hay un captcha.'
+      );
+    } else {
+      console.log('Login exitoso.');
+
+      // Guardar la sesión para futuras ejecuciones
+      await context.storageState({ path: sessionPath });
+      await page.waitForTimeout(5000);
+      console.log('Sesión guardada en:', sessionPath);
+    }
+  } else {
+    console.log('Ya estás logueado.');
   }
 };

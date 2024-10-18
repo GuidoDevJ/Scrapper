@@ -1,11 +1,13 @@
 import { chromium } from 'playwright';
+import { getTiktoksLinks } from './utilities/playwright/dataInfo';
+import { loginTiktok } from './utilities/playwright/loadsession';
 
 const scrapeTikTokProfile = async (username: string) => {
   // Inicializa el navegador
   const browser = await chromium.launch({ headless: false }); // Cambia a true si no necesitas ver la interfaz gráfica
   const context = await browser.newContext();
   const page = await context.newPage();
-
+  await loginTiktok(page,browser, {});
   // Navega al perfil de TikTok
   const profileUrl = `https://www.tiktok.com/@midudev`;
   await page.goto(profileUrl, { waitUntil: 'networkidle' });
@@ -44,7 +46,37 @@ const scrapeTikTokProfile = async (username: string) => {
       likes: finalMap[2],
     };
   });
+  const links = await getTiktoksLinks(page);
+  console.log('links=====>>>', links);
+  //   let prevHeight = 0;
+  //   let currentHeight = 0;
+  //   let reachedEnd = false;
+  //   const allLinks = new Set<string>();
+  //   let iterations = 0;
+  //   const maxIterations = 100; // Limite de iteraciones para evitar bucles infinitos
+
+  //   while (!reachedEnd && iterations < maxIterations) {
+  //     currentHeight = await page.evaluate(() => document.body.scrollHeight);
+  //     if (currentHeight === prevHeight) {
+  //       reachedEnd = true;
+  //     } else {
+  //       prevHeight = currentHeight;
+  //       await page.evaluate(() => window.scrollBy(0, 100000));
+  //       await page.waitForTimeout(randomTimeout(5000, 15000));
+
+  //         const links = await getTiktoksLinks(page);
+  //       //   links.forEach((link: string) => {
+  //       //     if (!allLinks.has(link)) {
+  //       //       allLinks.add(link);
+  //       //     }
+  //       //   });
+  //     }
+  //     iterations++;
+  //   }
+
+  //   allData.links = Array.from(allLinks);
   // Cierra el navegador
+  await page.waitForTimeout(50000);
   await browser.close();
 };
 
