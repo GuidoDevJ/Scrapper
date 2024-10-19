@@ -87,8 +87,8 @@
 // };
 
 import * as fs from 'fs';
-import { BrowserContext, chromium, Cookie, Page } from 'playwright';
-import { getRandomUserAgent } from '../randomUsersAgents';
+import { BrowserContext, Cookie, Page } from 'playwright';
+import { UserCredentials } from '../../types/types';
 
 const usersInstagram = './userInstagram.json';
 
@@ -181,10 +181,10 @@ export const loginInstagram = async (page: Page, user: any, context: any) => {
     await page.fill('input[name="username"]', user.instagramUsername || '');
     await page.fill('input[name="password"]', user.instagramPassword || '');
     await page.click('button[type="submit"]');
-    // await saveSession(page.context(), user);
+    await saveSession(page.context(), user);
 
     // Guarda el estado de almacenamiento local y cookies en un archivo
-    // await context.storageState({ path: 'instagram.json' });
+    await context.storageState({ path: 'instagram.json' });
     await page.waitForTimeout(10000); // Ajusta esto según tu necesidad
     console.log('Inicio de sesión exitoso.');
   } catch (error) {
@@ -193,9 +193,13 @@ export const loginInstagram = async (page: Page, user: any, context: any) => {
 };
 
 // Función principal para cargar sesión e iniciar sesión si es necesario
-export const loadSessionAndLogin = async (page: Page, user: any) => {
+export const loadSessionAndLogin = async (
+  page: Page,
+  user: UserCredentials,
+  context: any
+) => {
   try {
-    const context = page.context();
+    // const context = page.context();
     const cookies = await loadSession(context, user);
 
     await page.goto('https://www.instagram.com', { waitUntil: 'networkidle' });

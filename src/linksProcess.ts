@@ -15,6 +15,7 @@ const main = async () => {
     }
     // Verifica si hay cuentas para procesar
     for (const account of accounts) {
+      if (account.account.enabled === 0) break;
       const links = account.linksPosts;
 
       // Verifica si links es nulo o indefinido
@@ -29,8 +30,7 @@ const main = async () => {
       console.log('Estoy por procesar los links');
       await instagramService.processLinks(links, account, user);
     }
-
-    console.log('finish');
+    console.log('finish scrap of accounts');
   } catch (error: any) {
     console.error(`Error: ${error.message}`);
     console.error(`Stack trace: ${error.stack}`);

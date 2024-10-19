@@ -1,12 +1,11 @@
 import { Browser, chromium, Page } from 'playwright';
-import { AllData, InstagramPostDetails } from '../../types/types';
-import { getRandomProxy } from '../proxyHelper';
-import { loadSessionAndLogin, loginInstagram } from './loadsession';
-import { getPostLinks, getProfileData } from './dataInfo';
+import { AllData, UserCredentials } from '../../types/types';
 import { randomTimeout, retryOperation } from '../optimization';
+import { wait } from '../randomDelay';
 import { extractComments } from '../scrapCommentsPost';
 import { scrapeData } from '../scrapPostData';
-import { wait } from '../randomDelay';
+import { getPostLinks, getProfileData } from './dataInfo';
+import { loginInstagram } from './loadsession';
 
 const handle429 = async () => {
   const delay = randomTimeout(60000, 120000); // Espera entre 1 y 2 minutos
@@ -18,8 +17,7 @@ const handle429 = async () => {
 export const getInstagramPosts = async (
   browser: Browser,
   page: Page,
-  username: string,
-  user: any
+  username: string
 ): Promise<AllData> => {
   let allData: AllData = {
     posts: 0,
@@ -28,6 +26,7 @@ export const getInstagramPosts = async (
     links: [],
     profileImg: '',
   };
+  await wait(randomTimeout(3000, 6000));
   try {
     await retryOperation(page, () =>
       page.goto(`https://www.instagram.com/${username}/`)
@@ -46,6 +45,7 @@ export const getInstagramPosts = async (
     const allLinks = new Set<string>();
     let iterations = 0;
     const maxIterations = 100; // Limite de iteraciones para evitar bucles infinitos
+    const maxLinks = 30; // Límite de enlaces a recolectar
 
     while (!reachedEnd && iterations < maxIterations) {
       currentHeight = await page.evaluate(() => document.body.scrollHeight);
@@ -62,13 +62,15 @@ export const getInstagramPosts = async (
             allLinks.add(link);
           }
         });
+        if (allLinks.size >= maxLinks) {
+          reachedEnd = true;
+        }
       }
       iterations++;
     }
 
     allData.links = Array.from(allLinks);
     await page.waitForTimeout(randomTimeout(5000, 7000));
-    await browser.close();
     return allData;
   } catch (error) {
     console.error(`Error fetching data for ${username}:`, error);
@@ -77,11 +79,11 @@ export const getInstagramPosts = async (
   }
 };
 
-export const getBrowserAndPage = async (user: any) => {
+export const getBrowserAndPage = async (user: UserCredentials) => {
   // const { server, username: proxyUsername, password } = getRandomProxy() as any;
 
   const browser = await chromium.launch({
-    // headless: false,
+    headless: false,
     // proxy: {
     //   server,
     //   username: proxyUsername,
@@ -105,10 +107,9 @@ export const getInstagramPostData = async (
   page: Page
 ): Promise<any[]> => {
   const results = [];
-
   for (const link of urls) {
+    await wait(randomTimeout(3000, 6000));
     try {
-      await wait(180000);
       // Intentar cargar la página
       await retryOperation(page, () =>
         page.goto(link, { timeout: 100000, waitUntil: 'networkidle' })

@@ -41,3 +41,8 @@ export interface AllData {
   links: string[];
   profileImg: string;
 }
+
+export interface UserCredentials {
+  instagramUsername: string;
+  instagramPassword: string;
+}

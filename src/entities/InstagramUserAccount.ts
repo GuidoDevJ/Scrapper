@@ -1,13 +1,13 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
+  Entity,
+  JoinColumn,
   OneToMany,
   OneToOne,
-  JoinColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { InstagramPost } from './InstagramPost';
 import { AccountEntity } from './Account';
+import { InstagramPost } from './InstagramPost';
 
 @Entity()
 export class InstagramUserAccount {
@@ -20,13 +20,13 @@ export class InstagramUserAccount {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   scrapDate: string;
 
-  @Column()
+  @Column({ type: 'float' }) // Cambiado a 'float' para manejar decimales
   numberOfPosts: number;
 
-  @Column()
+  @Column({ type: 'float' }) // Cambiado a 'float'
   followers: number;
 
-  @Column()
+  @Column({ type: 'float' }) // Cambiado a 'float'
   following: number;
 
   @Column('text', { array: true, nullable: true })

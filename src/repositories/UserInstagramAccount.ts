@@ -1,6 +1,6 @@
-import { DataSource, Repository } from 'typeorm';
-import { InstagramUserAccount } from '../entities/InstagramUserAccount';
+import { Repository } from 'typeorm';
 import { AppDataSource } from '../db';
+import { InstagramUserAccount } from '../entities/InstagramUserAccount';
 
 export class UserRepository {
   private repository: Repository<InstagramUserAccount>;
@@ -32,6 +32,10 @@ export class UserRepository {
     return await this.repository.save(user);
   }
   async getLinksOfPosts() {
-    return await this.repository.find();
+    return await this.repository.find({
+      relations: {
+        account: true,
+      },
+    });
   }
 }
