@@ -20,21 +20,6 @@ const mainProcessAccounts = async () => {
     if (accounts.length === 0) {
       await AppDataSource.destroy();
     }
-    // // Procesa cada cuenta de Instagram
-    // for (const account of accounts) {
-    //   if (account.enabled === 0) continue;
-    //   const match = account.accountURL.match(pattern);
-    //   if (match) {
-    //     const username = match[1];
-    //     const user = await getRandomUser();
-    //     console.log(`Account ${account.accountURL} `, user);
-    //     await instagramService.processPosts(username, account, user, onlyOne);
-    //   } else {
-    //     console.error(
-    //       `No se pudo extraer el nombre de usuario de la URL: ${account.accountURL}`
-    //     );
-    //   }
-    // }
 
     let availableAccounts = accounts.filter(
       (account: AccountEntity) => account.enabled !== 0

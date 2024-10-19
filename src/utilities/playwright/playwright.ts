@@ -83,7 +83,7 @@ export const getBrowserAndPage = async (user: UserCredentials) => {
   // const { server, username: proxyUsername, password } = getRandomProxy() as any;
 
   const browser = await chromium.launch({
-    headless: false,
+    headless: true,
     // proxy: {
     //   server,
     //   username: proxyUsername,

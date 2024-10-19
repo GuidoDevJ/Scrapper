@@ -132,7 +132,6 @@ export class InstagramScrapperService {
           linksPosts: links,
           scrapDate: getTime(),
         });
-        console.log('newUser', newUser);
         await this.historyRepository.save({
           account,
           followers,

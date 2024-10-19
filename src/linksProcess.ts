@@ -13,9 +13,9 @@ const main = async () => {
     if (accounts.length === 0) {
       await AppDataSource.destroy();
     }
-    // Verifica si hay cuentas para procesar
-    for (const account of accounts) {
-      if (account.account.enabled === 0) break;
+    let availableAccounts = accounts.filter((acc) => acc.account.enabled !== 0);
+    // // Verifica si hay cuentas para procesar
+    for (const account of availableAccounts) {
       const links = account.linksPosts;
 
       // Verifica si links es nulo o indefinido
