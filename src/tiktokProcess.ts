@@ -1,13 +1,15 @@
+import { Solver } from '@2captcha/captcha-solver';
 import { chromium } from 'playwright';
 import { getTiktoksLinks } from './utilities/playwright/dataInfo';
-import { loginTiktok } from './utilities/playwright/loadsession';
-
 const scrapeTikTokProfile = async (username: string) => {
+  const solver = new Solver('49ca009a143c217deef50f3143f6d1be');
+  const randomInt = (min: number, max: number) =>
+    Math.floor(Math.random() * (max - min + 1)) + min;
   // Inicializa el navegador
   const browser = await chromium.launch({ headless: false }); // Cambia a true si no necesitas ver la interfaz gráfica
   const context = await browser.newContext();
   const page = await context.newPage();
-  await loginTiktok(page,browser, {});
+  //   await loginTiktok(page,browser, {});
   // Navega al perfil de TikTok
   const profileUrl = `https://www.tiktok.com/@midudev`;
   await page.goto(profileUrl, { waitUntil: 'networkidle' });
