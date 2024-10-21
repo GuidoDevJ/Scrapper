@@ -20,13 +20,13 @@ export class InstagramUserAccount {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   scrapDate: string;
 
-  @Column({ type: 'float' }) // Cambiado a 'float' para manejar decimales
+  @Column({ type: 'float', default: 0 }) // Cambiado a 'float' para manejar decimales
   numberOfPosts: number;
 
-  @Column({ type: 'float' }) // Cambiado a 'float'
+  @Column({ type: 'float', default: 0 }) // Cambiado a 'float'
   followers: number;
 
-  @Column({ type: 'float' }) // Cambiado a 'float'
+  @Column({ type: 'float', default: 0 }) // Cambiado a 'float'
   following: number;
 
   @Column('text', { array: true, nullable: true })
