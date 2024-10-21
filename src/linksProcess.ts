@@ -27,10 +27,9 @@ const main = async () => {
       }
 
       const user = await getRandomUser();
-      console.log('Estoy por procesar los links');
       await instagramService.processLinks(links, account, user);
     }
-    console.log('finish scrap of accounts');
+    console.log('finish scrap of links');
   } catch (error: any) {
     console.error(`Error: ${error.message}`);
     console.error(`Stack trace: ${error.stack}`);
