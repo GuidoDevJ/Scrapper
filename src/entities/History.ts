@@ -6,13 +6,19 @@ export class HistoryEntity {
   @PrimaryGeneratedColumn()
   id?: number;
 
-  @Column()
+  @Column({
+    default: 0,
+  })
   numberOfPosts: number;
 
-  @Column()
+  @Column({
+    default: 0,
+  })
   followers: number;
 
-  @Column()
+  @Column({
+    default: 0,
+  })
   following: number;
 
   @Column()
