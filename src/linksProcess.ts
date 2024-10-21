@@ -13,8 +13,9 @@ const main = async () => {
     if (accounts.length === 0) {
       await AppDataSource.destroy();
     }
-    // Verifica si hay cuentas para procesar
-    for (const account of accounts) {
+    let availableAccounts = accounts.filter((acc) => acc.account.enabled !== 0);
+    // // Verifica si hay cuentas para procesar
+    for (const account of availableAccounts) {
       const links = account.linksPosts;
 
       // Verifica si links es nulo o indefinido
@@ -29,8 +30,7 @@ const main = async () => {
       console.log('Estoy por procesar los links');
       await instagramService.processLinks(links, account, user);
     }
-
-    console.log('finish');
+    console.log('finish scrap of accounts');
   } catch (error: any) {
     console.error(`Error: ${error.message}`);
     console.error(`Stack trace: ${error.stack}`);
