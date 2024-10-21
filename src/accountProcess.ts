@@ -1,8 +1,8 @@
 import { AppDataSource } from './db/index';
 import { AccountEntity } from './entities/Account';
 import { InstagramScrapperService } from './services/InstagramService';
+import { getRandomUser } from './utilities/playwright/loadsession';
 import { subdivideArray } from './utilities/subDivideArrays';
-const pattern = /instagram\.com\/([A-Za-z0-9._]+)/;
 
 const mainProcessAccounts = async () => {
   try {
@@ -13,7 +13,6 @@ const mainProcessAccounts = async () => {
 
     // Obtén todas las cuentas
     const accounts = await instagramService.getAllAccounts();
-    console.log(accounts);
     const onlyOne = accounts.length === 1;
     // Verifica si hay cuentas para procesar
 
@@ -24,13 +23,12 @@ const mainProcessAccounts = async () => {
     let availableAccounts = accounts.filter(
       (account: AccountEntity) => account.enabled !== 0
     );
-    const accountsSubDivide = subdivideArray(availableAccounts, 5);
+    const accountsSubDivide = subdivideArray(availableAccounts, 4);
     console.log(accountsSubDivide);
-    // for (const accounts of accountsSubDivide) {
-    //   let user = await getRandomUser(); // Obtener el primer usuario
-    //   await instagramService.processPosts(user, onlyOne, accounts);
-    // }
-
+    for (const accounts of accountsSubDivide) {
+      let user = await getRandomUser(); // Obtener el primer usuario
+      await instagramService.processPosts(user, onlyOne, accounts);
+    }
     console.log('All accounts processed successfully.');
   } catch (error: any) {
     console.error(`Error: ${error.message}`);
