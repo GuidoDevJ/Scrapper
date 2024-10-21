@@ -8,6 +8,7 @@
     "start:dev": "node ./build/index.js",
     "dev-links": "ts-node-dev src/linksProcess.ts",
     "dev-accounts": "ts-node-dev src/accountProcess.ts",
+    "dev-db": "ts-node-dev src/toDatabase.ts",
     "start:dev-links": "node ./build/linksProcess.js",
     "start:dev-account": "node ./build/accountProcess.js",
     "seed": "ts-node-dev src/utilities/seed.ts"
