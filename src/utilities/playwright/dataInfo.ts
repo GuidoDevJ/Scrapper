@@ -16,9 +16,9 @@ export const getProfileData = async (page: Page) => {
     });
     return {
       profileImg: profileImg.src,
-      following: Number(spans[2].replace(/,/g, '')),
-      followers: Number(spans[1].replace(/,/g, '')),
-      posts: Number(spans[0].replace(/,/g, '')),
+      following: Number(spans[2].replace(/[,\.]/g, '')), // Elimina comas y puntos
+      followers: Number(spans[1].replace(/[,\.]/g, '')), // Elimina comas y puntos
+      posts: Number(spans[0].replace(/[,\.]/g, '')), // Elimina comas y puntos
     };
   });
   return data;

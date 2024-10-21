@@ -6,7 +6,6 @@
   "scripts": {
     "build": "tsc",
     "start:dev": "node ./build/index.js",
-    "start": "pm2-runtime ecosystem.config.js --env production",
     "dev-links": "ts-node-dev src/linksProcess.ts",
     "dev-accounts": "ts-node-dev src/accountProcess.ts",
     "start:dev-links": "node ./build/linksProcess.js",
