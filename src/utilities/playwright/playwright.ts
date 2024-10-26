@@ -165,7 +165,9 @@ export const getInstagramPostData = async (
                   : document.querySelector(selector)?.children[1].children[0]
                       .children[2];
               if (!mainDiv) return null;
-
+              const buttons = document.querySelectorAll(
+                'button._abl-'
+              ) as NodeListOf<HTMLButtonElement>;
               const hiddenCommentsSpan = Array.from(
                 document.querySelectorAll('span')
               ).find(
@@ -173,7 +175,11 @@ export const getInstagramPostData = async (
                   span.textContent === 'View hidden comments' ||
                   span.textContent === 'Ver comentarios ocultos'
               );
-              if (hiddenCommentsSpan) {
+              console.log(hiddenCommentsSpan);
+              if (buttons.length > 0) {
+                buttons.forEach((button: HTMLButtonElement) => {
+                  button.click();
+                });
                 mainDiv.scrollBy(0, -1000);
                 return {
                   newScrollTop: mainDiv.scrollTop,
@@ -213,7 +219,8 @@ export const getInstagramPostData = async (
 
       // Extraer comentarios
       const commentsDivs = await extractComments(page);
-
+      // await page.waitForTimeout(2147483647); // Máximo valor permitido en milisegundos
+      console.log('Soy los commentsDivs', commentsDivs);
       // Esperar a que los comentarios estén disponibles
       try {
         await page.waitForSelector('ul div', { timeout: 5000 });
@@ -241,6 +248,7 @@ export const getInstagramPostData = async (
           ?.children[1]?.children[0]?.children[1]?.children[2]?.querySelector(
             'ul'
           )?.children[2];
+
 
         const ownerCommentsContainer2 = document.querySelector(
           'main > div > div > div'
