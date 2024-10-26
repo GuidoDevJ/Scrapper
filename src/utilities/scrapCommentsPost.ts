@@ -40,7 +40,10 @@ export const extractComments = async (page: Page): Promise<any> => {
         const allCom = allComments.map((commentElement: any) => {
           let viewRepliesButton: HTMLElement | null = null;
           if (ownerCommentsContainer1) {
-            viewRepliesButton = commentElement.querySelectorAll('button')[1];
+            viewRepliesButton = commentElement
+              .querySelector('ul')
+              ?.querySelector('ul')
+              ?.querySelector('button');
           } else if (ownerCommentsContainer2) {
             viewRepliesButton =
               (commentElement?.children[1]?.querySelector('span') as any) ||
