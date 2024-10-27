@@ -83,7 +83,7 @@ export const getBrowserAndPage = async (user: UserCredentials) => {
   // const { server, username: proxyUsername, password } = getRandomProxy() as any;
 
   const browser = await chromium.launch({
-    headless: false,
+    // headless: false,
     // proxy: {
     //   server,
     //   username: proxyUsername,
@@ -220,7 +220,7 @@ export const getInstagramPostData = async (
       // Extraer comentarios
       const commentsDivs = await extractComments(page);
       console.log('Soy los commentsDivs', commentsDivs);
-      await page.waitForTimeout(2147483647); // Máximo valor permitido en milisegundos
+      // await page.waitForTimeout(2147483647); // Máximo valor permitido en milisegundos
       // Esperar a que los comentarios estén disponibles
       try {
         await page.waitForSelector('ul div', { timeout: 5000 });
