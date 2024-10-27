@@ -42,6 +42,7 @@ export class InstagramScrapperService {
       browser,
       page
     );
+    console.log('Soy todo la data ===>', allData);
     for (const data of allData) {
       const {
         link,

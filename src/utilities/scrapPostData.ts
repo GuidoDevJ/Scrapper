@@ -2,6 +2,8 @@ import { Page } from 'playwright';
 
 export const scrapeData = async (page: Page) => {
   // Intenta extraer los datos de la primera estructura
+  page.on('console', (msg) => console.log(`Browser log: ${msg.text()}`));
+
   let data = await page.evaluate(() => {
     const deleteTags = /<[^>]*>/g;
 

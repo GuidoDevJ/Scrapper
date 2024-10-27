@@ -181,10 +181,10 @@ export const loginInstagram = async (page: Page, user: any, context: any) => {
     await page.fill('input[name="username"]', user.instagramUsername || '');
     await page.fill('input[name="password"]', user.instagramPassword || '');
     await page.click('button[type="submit"]');
-    await saveSession(page.context(), user);
+    // await saveSession(page.context(), user);
 
     // Guarda el estado de almacenamiento local y cookies en un archivo
-    await context.storageState({ path: 'instagram.json' });
+    // await context.storageState({ path: 'instagram.json' });
     await page.waitForTimeout(10000); // Ajusta esto según tu necesidad
     console.log('Inicio de sesión exitoso.');
   } catch (error) {

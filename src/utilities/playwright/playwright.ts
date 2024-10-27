@@ -83,7 +83,7 @@ export const getBrowserAndPage = async (user: UserCredentials) => {
   // const { server, username: proxyUsername, password } = getRandomProxy() as any;
 
   const browser = await chromium.launch({
-    headless: true,
+    // headless: false,
     // proxy: {
     //   server,
     //   username: proxyUsername,
@@ -144,16 +144,17 @@ export const getInstagramPostData = async (
         });
         continue;
       }
+      page.on('console', (msg) => console.log(`Browser log: ${msg.text()}`));
 
-      // Scroll hasta el final para cargar todos los comentarios
       const scrollUntilEnd = async () => {
         let canScroll = true;
+
         const randomTimeout = (min: number, max: number) => {
           return Math.floor(Math.random() * (max - min + 1) + min);
         };
 
         while (canScroll) {
-          canScroll = (await page.evaluate(() => {
+          const scrollResult = await page.evaluate(() => {
             const getMainDivAndScroll = (selector: string) => {
               let mainDiv =
                 selector === 'article > div'
@@ -166,27 +167,30 @@ export const getInstagramPostData = async (
                       .children[2];
               if (!mainDiv) return null;
 
-              const hiddenCommentsSpan = Array.from(
-                document.querySelectorAll('span')
-              ).find(
-                (span) =>
-                  span.textContent === 'View hidden comments' ||
-                  span.textContent === 'Ver comentarios ocultos'
+              // Buscar el botón de cargar más comentarios
+              const loadMoreButton = document.querySelector(
+                'svg[aria-label*="Cargar más comentarios"]'
               );
-              if (hiddenCommentsSpan) {
-                mainDiv.scrollBy(0, -1000);
+
+              if (loadMoreButton) {
+                const buttonElement = loadMoreButton.closest('button'); // Obtener el botón padre del SVG
+                if (buttonElement) {
+                  buttonElement.click(); // Hacer clic en el botón
+                }
+                mainDiv.scrollBy(0, 10000); // Desplazar para cargar más
                 return {
                   newScrollTop: mainDiv.scrollTop,
-                  hiddenCommentsSpanExists: true,
+                  buttonClicked: true,
                   currentScrollTop: mainDiv.scrollTop,
                 };
               }
 
+              // Si no hay botón, solo sigue desplazando
               const currentScrollTop = mainDiv.scrollTop;
               mainDiv.scrollBy(0, 10000);
               return {
                 newScrollTop: mainDiv.scrollTop,
-                hiddenCommentsSpanExists: !!hiddenCommentsSpan,
+                buttonClicked: false, // No hay botón para hacer clic
                 currentScrollTop,
               };
             };
@@ -196,16 +200,18 @@ export const getInstagramPostData = async (
               scrollResult = getMainDivAndScroll('main > div > div > div');
             }
             return scrollResult;
-          })) as any;
+          });
 
-          const { newScrollTop, hiddenCommentsSpanExists, currentScrollTop } =
-            canScroll as any;
+          const { newScrollTop, buttonClicked, currentScrollTop } =
+            scrollResult as any;
 
-          if (newScrollTop === currentScrollTop || hiddenCommentsSpanExists) {
+          // Si el scroll no cambió o no hay botón para hacer clic, termina
+          if (newScrollTop === currentScrollTop && !buttonClicked) {
             canScroll = false;
           }
 
-          await page.waitForTimeout(randomTimeout(2000, 8000));
+          // Esperar antes de hacer otro intento
+          await page.waitForTimeout(randomTimeout(2000, 5000));
         }
       };
 
@@ -213,7 +219,8 @@ export const getInstagramPostData = async (
 
       // Extraer comentarios
       const commentsDivs = await extractComments(page);
-
+      console.log('Soy los commentsDivs', commentsDivs);
+      // await page.waitForTimeout(2147483647); // Máximo valor permitido en milisegundos
       // Esperar a que los comentarios estén disponibles
       try {
         await page.waitForSelector('ul div', { timeout: 5000 });
