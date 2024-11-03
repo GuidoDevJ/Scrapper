@@ -5,7 +5,7 @@ import { wait } from '../randomDelay';
 import { extractComments } from '../scrapCommentsPost';
 import { scrapeData } from '../scrapPostData';
 import { getPostLinks, getProfileData } from './dataInfo';
-import { loginInstagram } from './loadsession';
+import { checkForSuspicionScreen, loginInstagram } from './loadsession';
 
 const handle429 = async () => {
   const delay = randomTimeout(60000, 120000); // Espera entre 1 y 2 minutos
@@ -27,6 +27,19 @@ export const getInstagramPosts = async (
     profileImg: '',
   };
   await wait(randomTimeout(3000, 6000));
+  const isSuspicionScreen: boolean = await checkForSuspicionScreen(page);
+
+  // Si aparece la pantalla, hacer clic en el botón de "Cerrar"
+  if (isSuspicionScreen) {
+    await page.evaluate(() => {
+      const closeButton = Array.from(document.querySelectorAll('button')).find(
+        (button) => button.innerText === 'Cerrar'
+      );
+      if (closeButton) closeButton.click();
+    });
+    await page.waitForTimeout(2000); // Esperar un momento después de cerrar
+  }
+
   try {
     await retryOperation(page, () =>
       page.goto(`https://www.instagram.com/${username}/`)
@@ -83,7 +96,7 @@ export const getBrowserAndPage = async (user: UserCredentials) => {
   // const { server, username: proxyUsername, password } = getRandomProxy() as any;
 
   const browser = await chromium.launch({
-    // headless: false,
+    headless: false,
     // proxy: {
     //   server,
     //   username: proxyUsername,
@@ -94,7 +107,6 @@ export const getBrowserAndPage = async (user: UserCredentials) => {
   const page = await context.newPage();
   await loginInstagram(page, user, context);
   // Capturar los mensajes de console.log de la página
-  page.on('console', (msg) => console.log(msg.text()));
   return {
     browser,
     page,
@@ -114,6 +126,19 @@ export const getInstagramPostData = async (
       await retryOperation(page, () =>
         page.goto(link, { timeout: 100000, waitUntil: 'networkidle' })
       );
+      const isSuspicionScreen: boolean = await checkForSuspicionScreen(page);
+
+      // Si aparece la pantalla, hacer clic en el botón de "Cerrar"
+      if (isSuspicionScreen) {
+        await page.evaluate(() => {
+          const closeButton = Array.from(
+            document.querySelectorAll('button')
+          ).find((button) => button.innerText === 'Cerrar');
+          if (closeButton) closeButton.click();
+        });
+        await page.waitForTimeout(2000); // Esperar un momento después de cerrar
+      }
+
       await retryOperation(page, () => page.waitForSelector('main'));
 
       // Scraping de datos
@@ -220,8 +245,7 @@ export const getInstagramPostData = async (
       // Extraer comentarios
       const commentsDivs = await extractComments(page);
       console.log('Soy los commentsDivs', commentsDivs);
-      // await page.waitForTimeout(2147483647); // Máximo valor permitido en milisegundos
-      // Esperar a que los comentarios estén disponibles
+
       try {
         await page.waitForSelector('ul div', { timeout: 5000 });
       } catch (e) {
