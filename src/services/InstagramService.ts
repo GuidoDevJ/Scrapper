@@ -8,6 +8,7 @@ import { UserRepository } from '../repositories/UserInstagramAccount';
 import { UserCredentials } from '../types/types';
 import { getRandomMilliseconds } from '../utilities/getMiliseconds';
 import { getTime } from '../utilities/getTime';
+import { checkForSuspicionScreen } from '../utilities/playwright/loadsession';
 import {
   getBrowserAndPage,
   getInstagramPostData,
@@ -37,11 +38,24 @@ export class InstagramScrapperService {
     // Extraer las propiedades necesarias de 'data'
     let linksOfPostFinals = links.length > 10 ? links.slice(0, 10) : links;
     const { browser, page } = await getBrowserAndPage(user);
+    const isSuspicionScreen: boolean = await checkForSuspicionScreen(page);
+    console.log('Suspicious ===>>>>>', isSuspicionScreen);
+    // await page.waitForTimeout(3600000); // Si aparece la pantalla, hacer clic en el botón de "Cerrar"
+    if (isSuspicionScreen) {
+      await page.evaluate(() => {
+        const closeButton = Array.from(
+          document.querySelectorAll('button')
+        ).find((button) => button.innerText === 'Cerrar');
+        if (closeButton) closeButton.click();
+      });
+      await page.waitForTimeout(2000); // Esperar un momento después de cerrar
+    }
     const allData = await getInstagramPostData(
       linksOfPostFinals,
       browser,
       page
     );
+    console.log('Soy todo la data ===>', allData);
     for (const data of allData) {
       const {
         link,

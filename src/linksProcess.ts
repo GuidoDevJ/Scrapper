@@ -14,7 +14,7 @@ const main = async () => {
       await AppDataSource.destroy();
     }
     let availableAccounts = accounts.filter((acc) => acc.account.enabled !== 0);
-    // // Verifica si hay cuentas para procesar
+    // // // Verifica si hay cuentas para procesar
     for (const account of availableAccounts) {
       const links = account.linksPosts;
 
@@ -27,7 +27,7 @@ const main = async () => {
       }
 
       const user = await getRandomUser();
-      await instagramService.processLinks(links, account, user);
+      await instagramService.processLinks(links, account as any, user);
     }
     console.log('finish scrap of links');
   } catch (error: any) {
