@@ -221,8 +221,11 @@ export const loadSessionAndLogin = async (
 
 export const checkForSuspicionScreen = async (page: Page): Promise<boolean> => {
   return await page.evaluate(() => {
-    return Array.from(document.querySelectorAll('button')).some(
+    const hasCloseButton = Array.from(document.querySelectorAll('button')).some(
       (button) => button.innerText === 'Cerrar'
     );
+    const hasChallengeInUrl = window.location.href.includes('challenge');
+
+    return hasCloseButton || hasChallengeInUrl;
   });
 };

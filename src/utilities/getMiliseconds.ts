@@ -1,6 +1,6 @@
 export const getRandomMilliseconds = () => {
   const minMinutes = 10;
-  const maxMinutes = 15;
+  const maxMinutes = 25;
   const minMilliseconds = minMinutes * 60 * 1000; // 20 minutos a milisegundos
   const maxMilliseconds = maxMinutes * 60 * 1000; // 30 minutos a milisegundos
 
