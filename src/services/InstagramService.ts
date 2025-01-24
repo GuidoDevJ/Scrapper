@@ -55,7 +55,7 @@ export class InstagramScrapperService {
       browser,
       page
     );
-    console.log('Soy todo la data ===>', allData);
+    console.log('Soy toda la data ==>', allData);
     for (const data of allData) {
       const {
         link,
@@ -72,8 +72,11 @@ export class InstagramScrapperService {
         const post = await this.instagramPostRepository.createPost({
           media: [imgElements, videoElements],
           title: title,
-          numberOfLikes: +likes,
-          numberOfComments: +numberOfComments,
+          numberOfLikes: typeof likes === 'string' ? +likes : likes,
+          numberOfComments:
+            typeof numberOfComments === 'string'
+              ? +numberOfComments
+              : numberOfComments,
           postDate: datePost,
           account: userEntity,
           scrapDate: getTime(),
