@@ -39,7 +39,6 @@ export class InstagramScrapperService {
     let linksOfPostFinals = links.length > 10 ? links.slice(0, 10) : links;
     const { browser, page } = await getBrowserAndPage(user);
     const isSuspicionScreen: boolean = await checkForSuspicionScreen(page);
-    console.log('Suspicious ===>>>>>', isSuspicionScreen);
     // await page.waitForTimeout(3600000); // Si aparece la pantalla, hacer clic en el botón de "Cerrar"
     if (isSuspicionScreen) {
       await page.evaluate(() => {
@@ -55,7 +54,6 @@ export class InstagramScrapperService {
       browser,
       page
     );
-    console.log('Soy todo la data ===>', allData);
     for (const data of allData) {
       const {
         link,
@@ -72,8 +70,11 @@ export class InstagramScrapperService {
         const post = await this.instagramPostRepository.createPost({
           media: [imgElements, videoElements],
           title: title,
-          numberOfLikes: +likes,
-          numberOfComments: +numberOfComments,
+          numberOfLikes: typeof likes === 'string' ? +likes : likes,
+          numberOfComments:
+            typeof numberOfComments === 'string'
+              ? +numberOfComments
+              : numberOfComments,
           postDate: datePost,
           account: userEntity,
           scrapDate: getTime(),
@@ -114,7 +115,7 @@ export class InstagramScrapperService {
         console.error(`Error processing post from data ${data}:`, error);
       }
     }
-    await wait(getRandomMilliseconds());
+    return allData;
   }
 
   async processPosts(
