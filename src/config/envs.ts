@@ -9,6 +9,8 @@ interface EnvVars {
   POSTGRES_USER: string;
   POSTGRES_PASSWORD: string;
   POSTGRES_DB: string;
+  USER_EMAIL: string;
+  APP_PASSWORD: string;
 }
 
 const envsSchema = joi
@@ -18,6 +20,8 @@ const envsSchema = joi
     POSTGRES_USER: joi.string().required(),
     POSTGRES_PASSWORD: joi.string().required(),
     POSTGRES_DB: joi.string().required(),
+    USER_EMAIL: joi.string().required(),
+    APP_PASSWORD: joi.string().required(),
   })
   .unknown(true);
 
@@ -35,4 +39,6 @@ export const envs = {
   dbUser: envVars.POSTGRES_USER,
   dbPassword: envVars.POSTGRES_PASSWORD,
   dbName: envVars.POSTGRES_DB,
+  userEmail: envVars.USER_EMAIL,
+  appPassword: envVars.APP_PASSWORD,
 };
