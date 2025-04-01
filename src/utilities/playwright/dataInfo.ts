@@ -4,21 +4,25 @@ export const getProfileData = async (page: Page) => {
   const data = await page.evaluate(() => {
     const profileImg = document.querySelector('header img') as HTMLImageElement;
     const header = document.querySelector('header') as HTMLElement;
-    const liElements = header.querySelectorAll('li');
+    const liElements = header.querySelectorAll('ul')[0].querySelectorAll('li');
     const spans: any[] = [];
 
     liElements.forEach((list) => {
       const spanElement = list.querySelector('span');
-      const number =
-        spanElement?.getAttribute('title') ||
+      let number =
+        spanElement?.children[0].getAttribute('title') ||
         spanElement?.querySelector('span')?.innerHTML;
       spans.push(number);
     });
+    const numbers = spans.map((item) => {
+      const cleanText = item.replace(/<[^>]*>/g, ''); // Elimina etiquetas HTML
+      return cleanText.match(/[\d,]+/)?.[0] || ''; // Extrae números con comas
+    });
     return {
       profileImg: profileImg.src,
-      following: Number(spans[2].replace(/[,\.]/g, '')), // Elimina comas y puntos
-      followers: Number(spans[1].replace(/[,\.]/g, '')), // Elimina comas y puntos
-      posts: Number(spans[0].replace(/[,\.]/g, '')), // Elimina comas y puntos
+      following: Number(numbers[2].replace(/[,\.]/g, '')), // Elimina comas y puntos
+      followers: Number(numbers[1].replace(/[,\.]/g, '')), // Elimina comas y puntos
+      posts: Number(numbers[0].replace(/[,\.]/g, '')), // Elimina comas y puntos
     };
   });
   return data;
