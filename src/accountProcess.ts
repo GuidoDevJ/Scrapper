@@ -11,7 +11,7 @@ const mainProcessAccounts = async () => {
     // Crea una instancia del servicio de Instagram
     const instagramService = new InstagramScrapperService();
 
-    // Obtén todas las cuentas
+    // // Obtén todas las cuentas
     const accounts = await instagramService.getAllAccounts();
     const onlyOne = accounts.length === 1;
     // Verifica si hay cuentas para procesar
@@ -24,10 +24,10 @@ const mainProcessAccounts = async () => {
       (account: AccountEntity) => account.enabled !== 0
     );
     const accountsSubDivide = subdivideArray(availableAccounts, 4);
-    console.log(accountsSubDivide);
+
     for (const accounts of accountsSubDivide) {
       let user = await getRandomUser(); // Obtener el primer usuario
-      await instagramService.processPosts(user, onlyOne, accounts);
+      await instagramService.processPosts(user, onlyOne, accounts as any);
     }
     console.log('All accounts processed successfully.');
   } catch (error: any) {
