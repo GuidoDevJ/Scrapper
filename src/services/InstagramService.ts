@@ -147,14 +147,14 @@ export class InstagramScrapperService {
           linksPosts: links,
           scrapDate: getTime(),
         });
-        // await this.historyRepository.save({
-        //   account,
-        //   followers,
-        //   following,
-        //   userName: username,
-        //   numberOfPosts: posts,
-        //   scrapDate: getTime(),
-        // });
+        await this.historyRepository.save({
+          account,
+          followers,
+          following,
+          userName: username,
+          numberOfPosts: posts,
+          scrapDate: getTime(),
+        });
         if (posts === 0) {
           return newUser;
         }
