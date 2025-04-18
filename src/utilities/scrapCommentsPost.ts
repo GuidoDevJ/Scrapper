@@ -28,15 +28,9 @@ export const extractComments = async (page: Page): Promise<any> => {
       } else if (ownerCommentsContainer2) {
         ownerCommentsContainer = ownerCommentsContainer2;
       }
-      console.log('ownerCommentsContainer1:', ownerCommentsContainer1);
-      console.log('ownerCommentsContainer2:', ownerCommentsContainer2);
 
       if (ownerCommentsContainer) {
-        let allComments = Array.from(ownerCommentsContainer as any);
-        allComments = ownerCommentsContainer1
-          ? allComments.slice(2)
-          : allComments;
-
+        let allComments = Array.from(ownerCommentsContainer.childNodes);
         const allCom = allComments.map((commentElement: any) => {
           let viewRepliesButton: HTMLElement | null = null;
           if (ownerCommentsContainer1) {
@@ -51,8 +45,9 @@ export const extractComments = async (page: Page): Promise<any> => {
           }
 
           const ownerElement =
-            commentElement?.querySelector('span a')?.innerHTML ||
-            commentElement?.querySelector('span a span')?.innerHTML;
+            commentElement?.children[0].children[0].children[1]
+              ?.querySelector('a')
+              .getAttribute('href');
           const owner = ownerElement ? ownerElement.trim() : '';
 
           // Intentar hacer clic en el botón de "ver respuestas" si está presente
@@ -102,14 +97,13 @@ export const extractComments = async (page: Page): Promise<any> => {
             null;
 
           return {
-            owner: owner.replace(deleteTags, ''),
+            owner: owner.replace(/\//g, ''),
             finalComment: finalComment.replace(deleteTags, ''),
             likesNumber,
             commentDate: dateOfComment,
           };
         });
-
-        return allCom.filter((comment) => comment.owner !== '');
+        return allCom;
       }
 
       return [];

@@ -1,6 +1,7 @@
 import { AppDataSource } from './db/index';
 import { AccountEntity } from './entities/Account';
 import { InstagramScrapperService } from './services/InstagramService';
+import { clearAllSessions } from './utilities/playwright/clearAllSession';
 import { getRandomUser } from './utilities/playwright/loadsession';
 import { subdivideArray } from './utilities/subDivideArrays';
 
@@ -29,6 +30,7 @@ const mainProcessAccounts = async () => {
       let user = await getRandomUser(); // Obtener el primer usuario
       await instagramService.processPosts(user, onlyOne, accounts as any);
     }
+    clearAllSessions();
     console.log('All accounts processed successfully.');
   } catch (error: any) {
     console.error(`Error: ${error.message}`);
