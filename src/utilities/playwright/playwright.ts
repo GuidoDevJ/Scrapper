@@ -1,11 +1,12 @@
-import { Browser, chromium, Page } from 'playwright';
+import path from 'path';
+import { BrowserContext, chromium, Page } from 'playwright';
 import { AllData, UserCredentials } from '../../types/types';
 import { randomTimeout, retryOperation } from '../optimization';
 import { wait } from '../randomDelay';
 import { extractComments } from '../scrapCommentsPost';
 import { scrapeData } from '../scrapPostData';
 import { getPostLinks, getProfileData } from './dataInfo';
-import { checkForSuspicionScreen, loginInstagram } from './loadsession';
+import { checkForSuspicionScreen, getOrCreateContext } from './loadsession';
 
 const handle429 = async () => {
   const delay = randomTimeout(60000, 120000); // Espera entre 1 y 2 minutos
@@ -15,7 +16,7 @@ const handle429 = async () => {
   await new Promise((resolve) => setTimeout(resolve, delay));
 };
 export const getInstagramPosts = async (
-  browser: Browser,
+  browser: BrowserContext,
   page: Page,
   username: string
 ): Promise<AllData> => {
@@ -93,29 +94,44 @@ export const getInstagramPosts = async (
 };
 
 export const getBrowserAndPage = async (user: UserCredentials) => {
-  // const { server, username: proxyUsername, password } = getRandomProxy() as any;
+  const browser = await chromium
+    .launch
+    // { headless: false }
+    ();
 
-  const browser = await chromium.launch({
-    // headless: false,
-    // proxy: {
-    //   server,
-    //   username: proxyUsername,
-    //   password,
-    // },
-  });
-  let context = await browser.newContext();
+  const { context, isNewSession } = await getOrCreateContext(browser, user);
+
   const page = await context.newPage();
-  await loginInstagram(page, user, context);
-  // Capturar los mensajes de console.log de la página
-  return {
-    browser,
-    page,
-  };
-};
 
+  if (isNewSession) {
+    console.log('➡️ Iniciando sesión nueva para', user.instagramUsername);
+    await page.goto('https://www.instagram.com/accounts/login/', {
+      waitUntil: 'networkidle',
+    });
+
+    await page.waitForTimeout(3000);
+    await page.fill('input[name="username"]', user.instagramUsername || '');
+    await page.fill('input[name="password"]', user.instagramPassword || '');
+    await page.click('button[type="submit"]');
+
+    await page.waitForTimeout(8000); // Esperar que cargue todo
+
+    const sessionPath = path.resolve(
+      'sessions',
+      `${user.instagramUsername}_storage.json`
+    );
+    await context.storageState({ path: sessionPath });
+
+    console.log('✅ Sesión guardada en', sessionPath);
+  } else {
+    console.log('🟢 Sesión cargada desde disco para', user.instagramUsername);
+  }
+
+  return { browser, page, context };
+};
 export const getInstagramPostData = async (
   urls: string[],
-  browser: Browser,
+  context: BrowserContext,
   page: Page
 ): Promise<any[]> => {
   const results = [];
@@ -379,7 +395,7 @@ export const getInstagramPostData = async (
     }
   }
 
-  await browser.close();
+  await context.close();
   return results;
 };
 

@@ -47,11 +47,10 @@ export const scrapeData = async (page: Page) => {
       const mainDiv = document.querySelector('main > div > div > div');
       if (!mainDiv) return { images: '' };
       const deepDiv = mainDiv.querySelector('div > div > div');
-      if (!deepDiv) return { images: [], videos: [] };
-      const imgElements = Array.from(deepDiv.querySelectorAll('img')).map(
+      const imgElements = Array.from(deepDiv!.querySelectorAll('img')).map(
         (img) => (img as HTMLImageElement).src
       );
-      const videoElements = Array.from(deepDiv.querySelectorAll('video')).map(
+      const videoElements = Array.from(deepDiv!.querySelectorAll('video')).map(
         (video) => (video as HTMLVideoElement).src
       );
       const title =

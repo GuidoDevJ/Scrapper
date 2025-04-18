@@ -37,7 +37,7 @@ export class InstagramScrapperService {
   ) {
     // Extraer las propiedades necesarias de 'data'
     let linksOfPostFinals = links.length > 10 ? links.slice(0, 10) : links;
-    const { browser, page } = await getBrowserAndPage(user);
+    const { browser, page, context } = await getBrowserAndPage(user);
     const isSuspicionScreen: boolean = await checkForSuspicionScreen(page);
     // await page.waitForTimeout(3600000); // Si aparece la pantalla, hacer clic en el botón de "Cerrar"
     if (isSuspicionScreen) {
@@ -51,7 +51,7 @@ export class InstagramScrapperService {
     }
     const allData = await getInstagramPostData(
       linksOfPostFinals,
-      browser,
+      context,
       page
     );
     for (const data of allData) {
@@ -125,15 +125,14 @@ export class InstagramScrapperService {
     accounts: AccountEntity[]
   ) {
     const pattern = /instagram\.com\/([A-Za-z0-9._]+)/;
-
-    const { browser, page } = await getBrowserAndPage(user);
+    console.log('Llegue hasta aqui');
+    const { browser, page, context } = await getBrowserAndPage(user);
     for (const account of accounts) {
       const match = account.accountURL.match(pattern);
       if (match) {
         const username = match[1];
 
-        const data = await getInstagramPosts(browser, page, username);
-        console.log(`Data de la cuenta de ==> ${account.accountURL}`, data);
+        const data = await getInstagramPosts(context, page, username);
         // Extraer las propiedades necesarias de 'data'
         const { links, followers, following, posts, profileImg } = data;
         // Crear un nuevo usuario
