@@ -94,7 +94,10 @@ export const getInstagramPosts = async (
 };
 
 export const getBrowserAndPage = async (user: UserCredentials) => {
-  const browser = await chromium.launch({ headless: false });
+  const browser = await chromium
+    .launch
+    // { headless: false }
+    ();
 
   const { context, isNewSession } = await getOrCreateContext(browser, user);
 

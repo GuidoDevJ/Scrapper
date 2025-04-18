@@ -10,3 +10,4 @@ proxies.json
 userInstagram.json
 docker-compose*.yml
 sessionCookies*.json
+sessions
