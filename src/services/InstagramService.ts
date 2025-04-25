@@ -86,21 +86,20 @@ export class InstagramScrapperService {
           // Crear un nuevo comentario
           const { finalComment, owner, commentDate, likesNumber, responses } =
             comment;
-          const savedComment =
-            await this.commentRepository.createCommentOrUpdate({
-              comment: finalComment,
-              post,
-              commentOwnerName: owner,
-              likesOfComment: likesNumber,
-              commentDate: commentDate,
-              scrapDate: getTime(),
-            });
+          const savedComment = await this.commentRepository.createComment({
+            comment: finalComment,
+            post,
+            commentOwnerName: owner,
+            likesOfComment: likesNumber,
+            commentDate: commentDate,
+            scrapDate: getTime(),
+          });
           // Verificar si el comentario tiene respuestas
           if (responses && responses.length > 0) {
             for (const response of responses) {
               const { finalComment, commentDate, owner } = response;
               // Crear y guardar cada respuesta, pasando el ID del comentario principal como FK
-              await this.commentRepository.createCommentOrUpdate({
+              await this.commentRepository.createComment({
                 comment: finalComment,
                 post,
                 commentOwnerName: owner,

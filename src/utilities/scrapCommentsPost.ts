@@ -19,94 +19,86 @@ export const extractComments = async (page: Page): Promise<any> => {
       const ownerCommentsContainer2 = document.querySelector(
         'main > div > div > div'
       )?.children[1]?.children[0]?.children[2]?.children[0]?.children[1] as any;
-
+      const ownerCommentsContainer3 = document.querySelector('ul')?.children[2]
+        ?.children[0]?.children[0] as any;
       let ownerCommentsContainer: HTMLElement | null = null;
       if (ownerCommentsContainer1) {
-        ownerCommentsContainer =
-          ownerCommentsContainer1.children[2].children[0].children[0]
-            .childNodes;
+        ownerCommentsContainer = document.querySelector('ul')?.children[2]
+          ?.children[0]?.children[0] as any;
       } else if (ownerCommentsContainer2) {
         ownerCommentsContainer = ownerCommentsContainer2;
+      } else if (ownerCommentsContainer3) {
+        ownerCommentsContainer = ownerCommentsContainer3;
       }
 
-      if (ownerCommentsContainer) {
-        let allComments = Array.from(ownerCommentsContainer.childNodes);
-        const allCom = allComments.map((commentElement: any) => {
-          let viewRepliesButton: HTMLElement | null = null;
-          if (ownerCommentsContainer1) {
-            viewRepliesButton = commentElement
-              .querySelector('ul')
-              ?.querySelector('ul')
-              ?.querySelector('button');
-          } else if (ownerCommentsContainer2) {
-            viewRepliesButton =
-              (commentElement?.children[1]?.querySelector('span') as any) ||
-              null;
+      let allComments = Array.from(ownerCommentsContainer?.childNodes as any);
+      const allCom = allComments.map((commentElement: any) => {
+        let viewRepliesButton: HTMLElement | null = null;
+        if (ownerCommentsContainer1) {
+          viewRepliesButton = commentElement
+            .querySelector('ul')
+            ?.querySelector('ul')
+            ?.querySelector('button');
+        } else if (ownerCommentsContainer2) {
+          viewRepliesButton =
+            (commentElement?.children[1]?.querySelector('span') as any) || null;
+        }
+
+        const ownerElement = commentElement
+          ?.querySelector('h3')
+          .querySelector('a').innerHTML;
+
+        // Intentar hacer clic en el botón de "ver respuestas" si está presente
+        if (viewRepliesButton) {
+          try {
+            viewRepliesButton.click();
+          } catch (error) {
+            console.error(
+              'No se pudo hacer clic en el botón de "ver respuestas":',
+              error
+            );
           }
+        }
 
-          const ownerElement =
-            commentElement?.children[0].children[0].children[1]
-              ?.querySelector('a')
-              .getAttribute('href');
-          const owner = ownerElement ? ownerElement.trim() : '';
-
-          // Intentar hacer clic en el botón de "ver respuestas" si está presente
-          if (viewRepliesButton) {
-            try {
-              viewRepliesButton.click();
-            } catch (error) {
-              console.error(
-                'No se pudo hacer clic en el botón de "ver respuestas":',
-                error
-              );
-            }
-          }
-
-          const commentText =
-            commentElement
-              .querySelector('ul li')
-              ?.children[0]?.children[0]?.children[1]?.children[1]?.querySelector(
-                'span'
-              )?.innerHTML ??
-            commentElement?.children[0]?.children[0]?.children[1]?.children[0]
-              ?.children[0]?.children[0]?.children[1]?.children[0]?.innerHTML;
-          const finalComment = commentText ? commentText.trim() : '';
-
-          const likesOfComment =
-            commentElement
-              ?.querySelector('ul')
-              ?.children[0]?.querySelector('li')
-              ?.children[0]?.children[0]?.children[1]?.children[2]?.querySelector(
-                'button span'
-              )?.innerHTML ??
-            (commentElement?.children[0]?.children[0]?.children[1]?.children[0]?.children[1].querySelector(
+        const commentText =
+          commentElement
+            .querySelector('ul li')
+            ?.children[0]?.children[0]?.children[1]?.children[1]?.querySelector(
               'span'
-            )?.innerHTML as any);
+            )?.innerHTML ??
+          commentElement?.children[0]?.children[0]?.children[1]?.children[0]
+            ?.children[0]?.children[0]?.children[1]?.children[0]?.innerHTML;
+        const finalComment = commentText ? commentText.trim() : '';
 
-          const match = checkLikes.exec(likesOfComment);
-          let likesNumber = 0;
-          if (match) {
-            likesNumber = parseInt(match[1], 10);
-          }
+        const likesOfComment =
+          commentElement
+            ?.querySelector('ul')
+            ?.children[0]?.querySelector('li')
+            ?.children[0]?.children[0]?.children[1]?.children[2]?.querySelector(
+              'button span'
+            )?.innerHTML ??
+          (commentElement?.children[0]?.children[0]?.children[1]?.children[0]?.children[1].querySelector(
+            'span'
+          )?.innerHTML as any);
 
-          const dateOfComment =
-            commentElement?.querySelector('time')?.getAttribute('datetime') ||
-            commentElement?.children[0]
-              ?.querySelector('time')
-              ?.getAttribute('datetime') ||
-            null;
+        const match = checkLikes.exec(likesOfComment);
+        let likesNumber = 0;
+        if (match) {
+          likesNumber = parseInt(match[1], 10);
+        }
 
-          return {
-            owner: owner.replace(/\//g, ''),
-            finalComment: finalComment.replace(deleteTags, ''),
-            likesNumber,
-            commentDate: dateOfComment,
-          };
-        });
-        return allCom;
-      }
+        const dateOfComment = commentElement
+          ?.querySelector('time')
+          ?.getAttribute('datetime');
 
-      return [];
+        return {
+          owner: ownerElement.replace(/\//g, ''),
+          finalComment: finalComment.replace(deleteTags, ''),
+          likesNumber,
+          commentDate: dateOfComment,
+        };
+      });
+      return allCom;
     });
     console.log('Extracted comments:', commentsDivs);
   } catch (err: any) {
