@@ -1,6 +1,6 @@
-import { DataSource, Repository } from 'typeorm';
-import { CommentEntity } from '../entities/Comments';
+import { Repository } from 'typeorm';
 import { AppDataSource } from '../db/index';
+import { CommentEntity } from '../entities/Comments';
 
 export class CommentRepository {
   private commentsRepository: Repository<CommentEntity>;
@@ -28,7 +28,7 @@ export class CommentRepository {
     // Save the updated post
     await this.commentsRepository.save(postToUpdate);
   }
-  private async createComment(comment: any) {
+  async createComment(comment: any) {
     return await this.commentsRepository.save(comment);
   }
   private async checkIfExist(comment: string, postId: any) {
